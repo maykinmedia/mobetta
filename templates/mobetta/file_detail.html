@@ -1,4 +1,4 @@
-{% extends "mobetta/base.html" %}
+{% extends "mobetta/base.html" %}{% load admin_static %}
 {% load i18n %}
 
 {% block pagetitle %}{{ block.super }} - {% trans "Translations" %}{% endblock %}
@@ -12,6 +12,16 @@
 
     <div class="module">
         <h2>{% trans "Translations" %}</h2>
+        <div id="toolbar">
+            <form id="changelist-search" action="" method="get">
+                <div>
+                    {% csrf_token %}
+                    <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
+                    <input type="text" size="40" name="query" value="{% if query %}{{query}}{% endif %}" id="searchbar" tabindex="0" />
+                    <input type="submit" name="search" value="{% trans "Go" %}" />
+                </div>
+            </form>
+        </div>
         <table cellspacing="0">
             <thead>
                 <tr>

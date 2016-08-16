@@ -1,7 +1,10 @@
+table {
+    width: 80%;
+}
 
 td {
     font-size: 14px;
-    line-height: 20px;
+    line-height: 24px;
 }
 
 tr.warning {
@@ -10,10 +13,11 @@ tr.warning {
 
 .transrow:hover {
     font-style: italic;
-    background-color: #aaaaff;
+    background-color: #ccccff;
 }
 
-input.transedit {
-    width: 80%;
+.transrow input[type="text"] {
     font-size: 14px;
+    line-height: 20px;
+    width: 80%;
 }

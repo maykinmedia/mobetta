@@ -1,3 +1,5 @@
+import re
+
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from django.core.paginator import Paginator
@@ -25,20 +27,39 @@ class FileDetailView(DetailView):
     template_name = 'mobetta/file_detail.html'
     translations_per_page = 20
 
-    def get_context_data(self, *args, **kwargs):
-        ctx = super(FileDetailView, self).get_context_data(*args, **kwargs)
+    def allow_entry(self, entry):
+        if 'query' in self.request.GET:
+            regex = re.compile(self.request.GET['query'])
+            if regex.search(entry.msgid) is not None or \
+                regex.search(entry.msgstr) is not None:
 
+                return True
+            else:
+                return False
+
+        return True
+
+    def get_translations(self):
         translations = []
 
         po = self.object.get_polib_object()
 
-        for entry in po:
-            translations.append({
+        translations = [
+            {
                 'original': entry.msgid,
                 'translated': entry.msgstr,
                 'obsolete': entry.obsolete,
-            })
+            }
+            for entry in po
+            if self.allow_entry(entry)
+        ]
 
+        return translations
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(FileDetailView, self).get_context_data(*args, **kwargs)
+
+        translations = self.get_translations()
         paginator = Paginator(translations, self.translations_per_page)
 
         if 'page' in self.request.GET and int(self.request.GET.get('page')) <= paginator.num_pages and int(self.request.GET.get('page')) > 0:
