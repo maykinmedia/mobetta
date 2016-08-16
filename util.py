@@ -5,6 +5,10 @@ import inspect
 from django.conf import settings
 
 
+def message_is_fuzzy(message):
+    return message and hasattr(message, 'flags') and 'fuzzy' in message.flags
+
+
 def app_name_from_filepath(path):
     app = path.split("/locale")[0].split("/")[-1]
 

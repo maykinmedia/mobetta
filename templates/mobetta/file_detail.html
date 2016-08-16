@@ -27,6 +27,7 @@
                 <tr>
                     <th>{% trans "Original" %}</th>
                     <th>{% trans "Translation" %}</th>
+                    <th>{% trans "Fuzzy" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -34,6 +35,7 @@
                   <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
                     <td>{{ form.msgid }}</td>
                     <td>{{ form.translation }}</td>
+                    <td>{{ form.fuzzy }}</td>
                   </tr>
                 {% endfor %}
             </tbody>

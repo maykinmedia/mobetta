@@ -5,7 +5,7 @@ from django.views.generic import ListView, DetailView
 from django.core.paginator import Paginator
 from django.forms import formset_factory
 
-from mobetta.util import find_pofiles, app_name_from_filepath
+from mobetta.util import find_pofiles, app_name_from_filepath, message_is_fuzzy
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
 
@@ -47,6 +47,7 @@ class FileDetailView(DetailView):
                 'original': entry.msgid,
                 'translated': entry.msgstr,
                 'obsolete': entry.obsolete,
+                'fuzzy': message_is_fuzzy(entry),
             }
             for entry in po
             if self.allow_entry(entry)
@@ -73,7 +74,8 @@ class FileDetailView(DetailView):
         formset = TranslationFormSet(initial=[
             {
                 'msgid': trans['original'],
-                'translation': trans['translated']
+                'translation': trans['translated'],
+                'fuzzy': trans['fuzzy'],
             } for trans in paginator.page(page).object_list
         ])
 
