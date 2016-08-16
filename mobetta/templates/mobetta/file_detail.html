@@ -19,6 +19,13 @@
                     <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
                     <input type="text" size="40" name="query" value="{% if query %}{{query}}{% endif %}" id="searchbar" tabindex="0" />
                     <input type="submit" name="search" value="{% trans "Go" %}" />
+
+                    <ul class="changelist-filters">
+                        <li><a href="{% url 'file_detail' pk=object.pk %}">All</a></li>
+                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=fuzzy">Fuzzy</a></li>
+                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=translated">Translated</a></li>
+                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=untranslated">Untranslated</a></li>
+                    </ul>
                 </div>
             </form>
         </div>

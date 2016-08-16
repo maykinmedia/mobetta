@@ -36,20 +36,37 @@ class FileDetailView(DetailView):
     template_name = 'mobetta/file_detail.html'
     translations_per_page = 20
 
-    def allow_entry(self, entry):
-        if 'query' in self.request.GET:
-            regex = re.compile(self.request.GET['query'])
-            if regex.search(entry.msgid) is None and \
-                regex.search(entry.msgstr) is None:
+    def filter_by_search_tag(self, entries, tag):
+        regex = re.compile(tag)
 
-                return False
+        return (
+            entry for entry in entries
+            if regex.search(entry.msgid) or regex.search(entry.msgstr)
+        )
 
-        return True
+    def filter_by_type(self, pofile, type):
+        filters = {
+            'translated': 'translated_entries',
+            'untranslated': 'untranslated_entries',
+            'fuzzy': 'fuzzy_entries',
+        }
+        return getattr(pofile, filters[type])() if type in filters else pofile
+
+    def get_entries(self):
+        entries = self.object.get_polib_object()
+
+        type_filter = self.request.GET.get('type')
+        if type_filter:
+            entries = self.filter_by_type(entries, type_filter)
+
+        search_filter = self.request.GET.get('query')
+        if search_filter:
+            entries = self.filter_by_search_tag(entries, search_filter)
+
+        return entries
 
     def get_translations(self):
-        translations = []
-
-        po = self.object.get_polib_object()
+        entries = self.get_entries()
 
         translations = [
             {
@@ -58,8 +75,7 @@ class FileDetailView(DetailView):
                 'obsolete': entry.obsolete,
                 'fuzzy': message_is_fuzzy(entry),
             }
-            for entry in po
-            if self.allow_entry(entry)
+            for entry in entries
         ]
 
         return translations
