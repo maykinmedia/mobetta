@@ -1,0 +1,19 @@
+
+td {
+    font-size: 14px;
+    line-height: 20px;
+}
+
+tr.warning {
+    background-color: #ffaaaa;
+}
+
+.transrow:hover {
+    font-style: italic;
+    background-color: #aaaaff;
+}
+
+input.transedit {
+    width: 80%;
+    font-size: 14px;
+}

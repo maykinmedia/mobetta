@@ -1,0 +1,34 @@
+{% extends "mobetta/base.html" %}
+{% load i18n %}
+
+{% block pagetitle %}{{ block.super }} - {% trans "Translation files" %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div>{% trans "Home" %} &rsaquo; {% trans "Translation files" %}</div>
+{% endblock breadcrumbs %}
+
+{% block main %}
+    <h1>&nbsp;</h1>
+
+    <div class="module">
+        <h2>{% trans "Translation files" %}</h2>
+        <table cellspacing="0">
+            <thead>
+                <tr>
+                    <th>{% trans "App name" %}</th>
+                    <th>{% trans "Filename" %}</th>
+                    <th>{% trans "Created" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr class="{% cycle 'row1' 'row2' %}">
+                    <td><a href="{% url 'file_detail' pk=file.pk %}">{{ file.name }}</a></td>
+                    <td>{{ file.filepath }}</td>
+                    <td>{{ file.created }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock main %}

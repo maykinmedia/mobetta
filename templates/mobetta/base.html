@@ -1,0 +1,30 @@
+<!DOCTYPE html>{% load admin_static %}
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <title>{% block pagetitle %}Mobetta{% endblock %}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+    <link rel="stylesheet" href="{% static "admin/css/base.css" %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static "admin/css/forms.css" %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static "admin/css/changelists.css" %}" type="text/css"/>
+    <style type="text/css" media="screen">
+        {% include 'mobetta/css/mobetta.css' %}
+    </style>
+    <script src="//www.google.com/jsapi" type="text/javascript"></script>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            {% block header %}
+            <div id="branding">
+                <h1 id="site-name">Mobetta</h1>
+            </div>
+            {% endblock %}
+        </div>
+        <div class="breadcrumbs">{% block breadcumbs %}{% endblock %}</div>
+        <div id="content" class="flex">
+            {% block main %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,57 @@
+{% extends "mobetta/base.html" %}
+{% load i18n %}
+
+{% block pagetitle %}{{ block.super }} - {% trans "Translations" %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div>{% trans "Home" %} &rsaquo; {% trans "Translations" %}</div>
+{% endblock breadcrumbs %}
+
+{% block main %}
+    <h1>&nbsp;</h1>
+
+    <div class="module">
+        <h2>{% trans "Translations" %}</h2>
+        <table cellspacing="0">
+            <thead>
+                <tr>
+                    <th>{% trans "Original" %}</th>
+                    <th>{% trans "Translation" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for form in formset %}
+                  <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
+                    <td>{{ form.msgid }}</td>
+                    <td>{{ form.translation }}</td>
+                  </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div class="submit-row">
+            <p class="paginator">
+                {% if needs_pagination %}
+                    {% trans "Skip to page:" %}
+                    {% for i in page_range %}
+                        {% if i == '...' %}
+                        <span class="space">{{ i }}</span>
+                        {% else %}
+                        {% if i == page %}
+                            <span class="this-page">{{i}}</span>
+                        {% else %}
+                            <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
+                        {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    {% trans "Displaying:" %}
+                {% endif %}
+
+                {% with paginator.object_list|length as hits %}
+                    <strong>{% blocktrans count formset|length as message_number %}{{message_number}}/{{hits}} message{% plural %}{{message_number}}/{{hits}} messages{% endblocktrans %}</strong>
+                {% endwith %}
+            </p>
+        </div>
+    </div>
+{% endblock main %}
