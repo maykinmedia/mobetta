@@ -1,8 +1,18 @@
 import os
 import django
 import inspect
+import unicodedata
+import datetime
 
 from django.conf import settings
+from django.utils import timezone
+
+
+def get_version():
+    """
+    TODO: Probably use a config file for this.
+    """
+    return "0.0.1"
 
 
 def message_is_fuzzy(message):
@@ -15,7 +25,35 @@ def app_name_from_filepath(path):
     return app
 
 
-def update_file(pofile, changes):
+def timestamp_for_metadata(dt=None):
+    """
+    Return a timestamp with a timezone for the configured locale.  If all else
+    fails, consider localtime to be UTC.
+    """
+    dt = dt or datetime.datetime.now()
+    if timezone is None:
+        return dt.strftime('%Y-%m-%d %H:%M%z')
+    if not dt.tzinfo:
+        tz = timezone.get_current_timezone()
+        if not tz:
+            tz = timezone.utc
+        dt = dt.replace(tzinfo=timezone.get_current_timezone())
+    return dt.strftime("%Y-%m-%d %H:%M%z")
+
+
+def update_metadata(pofile, first_name=None, last_name=None, email=None):
+    pofile.metadata['Last-Translator'] = unicodedata.normalize('NFKD', u"%s %s <%s>" % (
+        first_name or 'Anonymous',
+        last_name or 'User',
+        email or 'anonymous@user.tld'
+    )).encode('ascii', 'ignore')
+
+    pofile.metadata['X-Translated-Using'] = u"Mobetta %s" % get_version()
+    pofile.metadata['PO-Revision-Date'] = timestamp_for_metadata()
+    pofile.save()
+
+
+def update_translations(pofile, changes):
     """
     Takes in a ``POFile`` (from `polib`) and a list of changes, and applies these changes
     to the PO file.
@@ -38,7 +76,12 @@ def update_file(pofile, changes):
                 entry.msgstr = change['msgstr']
                 print "msgstr: {} -> {}".format(old_msgstr, change['msgstr'])
             elif 'fuzzy' in change:
-                raise NotImplementedError()
+                old_fuzzy = 'fuzzy' in entry.flags
+                if old_fuzzy and not change['fuzzy']:
+                    entry.flags.remove('fuzzy')
+                elif change['fuzzy'] and not old_fuzzy:
+                    entry.flags.append('fuzzy')
+                print "fuzzy: {} -> {}".format(old_fuzzy, change['fuzzy'])
             else:
                 raise NotImplementedError()
 

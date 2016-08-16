@@ -11,7 +11,8 @@ from mobetta.util import (
     find_pofiles,
     app_name_from_filepath,
     message_is_fuzzy,
-    update_file,
+    update_translations,
+    update_metadata,
 )
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
@@ -124,11 +125,18 @@ class FileDetailView(DetailView):
 
         self.object = self.get_object()
 
-        pofile = self.object.get_polib_object()
+        if len(changes) > 0:
+            pofile = self.object.get_polib_object()
+            update_translations(pofile, changes)
 
-        update_file(pofile, changes)
+            update_metadata(
+                pofile,
+                self.request.user.first_name,
+                self.request.user.last_name,
+                self.request.user.email,
+            )
 
-        pofile.save()
+            pofile.save()
 
         messages.success(self.request, _('Changed %d translations') % len(changes))
         return self.render_to_response(self.get_context_data())
