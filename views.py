@@ -30,11 +30,9 @@ class FileDetailView(DetailView):
     def allow_entry(self, entry):
         if 'query' in self.request.GET:
             regex = re.compile(self.request.GET['query'])
-            if regex.search(entry.msgid) is not None or \
-                regex.search(entry.msgstr) is not None:
+            if regex.search(entry.msgid) is None and \
+                regex.search(entry.msgstr) is None:
 
-                return True
-            else:
                 return False
 
         return True
