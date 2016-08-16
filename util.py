@@ -15,6 +15,37 @@ def app_name_from_filepath(path):
     return app
 
 
+def update_file(pofile, changes):
+    """
+    Takes in a ``POFile`` (from `polib`) and a list of changes, and applies these changes
+    to the PO file.
+    Format of changes:
+        [
+            {
+                'msgid': <msgid>,
+                '<attrib_name>': '<new_value>',
+                ...
+            },
+            ...
+        ]
+    """
+    for change in changes:
+        entry = pofile.find(change['msgid'])
+
+        if entry:
+            if 'msgstr' in change:
+                old_msgstr = entry.msgstr
+                entry.msgstr = change['msgstr']
+                print "msgstr: {} -> {}".format(old_msgstr, change['msgstr'])
+            elif 'fuzzy' in change:
+                raise NotImplementedError()
+            else:
+                raise NotImplementedError()
+
+        else:
+            raise RuntimeError("Entry not found!")
+
+
 def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=False):
     """
     Scans app directories for gettext catalogues for the given language.
