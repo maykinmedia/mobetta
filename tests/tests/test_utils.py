@@ -1,3 +1,5 @@
+# coding=utf8
+
 import os
 import shutil
 
@@ -36,11 +38,11 @@ class POFileTests(TestCase):
 
         pofile = transfile.get_polib_object()
 
-        msgid_to_change = "String 1"
+        msgid_to_change = u"String 1"
         current_msgstr = pofile.find(msgid_to_change).msgstr
         self.assertEqual(current_msgstr, u"")
 
-        new_msgstr = "A new string"
+        new_msgstr = u"A nĕw Štring"
 
         # Make a change to a translation
         changes = [
@@ -64,16 +66,13 @@ class POFileTests(TestCase):
 
         pofile = transfile.get_polib_object()
 
-        util.update_metadata(pofile, 'Test', 'User', 'test@user.nl')
+        # Use unicode in name to test unicode handling
+        util.update_metadata(pofile, u'Ŧest', u'User', u'test@user.nl')
         pofile.save()
 
         pofile = transfile.get_polib_object()
 
-        expected_metadata = {
-            'Last-Translator': u'Test User <test@user.nl>',
-            'X-Translated-Using': u'Mobetta {}'.format(util.get_version()),
-        }
+        self.assertEqual(pofile.metadata['Last-Translator'], u'Ŧest User <test@user.nl>')
 
-
-        for k in expected_metadata.keys():
-            self.assertEqual(pofile.metadata[k].decode('utf-8'), expected_metadata[k])
+        version_code = u'Mobetta {}'.format(util.get_version())
+        self.assertEqual(pofile.metadata['X-Translated-Using'], version_code)
