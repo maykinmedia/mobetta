@@ -1,7 +1,5 @@
 import os
 
-from label_templates.sites import SiteLabels, SiteChoice
-
 
 PROJECT_DIR = os.path.dirname(__file__)
 BASE_DIR = PROJECT_DIR  # setting present in new startproject
@@ -38,14 +36,6 @@ TEMPLATES = [
         'DIRS': [
             os.path.join(PROJECT_DIR, 'templates'),
         ],
-        'OPTIONS': {
-            'loaders': [
-                ('label_templates.loaders.Loader', [
-                    'django.template.loaders.filesystem.Loader',
-                    'django.template.loaders.app_directories.Loader',
-                ]),
-            ],
-        },
     },
 ]
 

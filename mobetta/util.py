@@ -74,14 +74,14 @@ def update_translations(pofile, changes):
             if 'msgstr' in change:
                 old_msgstr = entry.msgstr
                 entry.msgstr = change['msgstr']
-                print "msgstr: {} -> {}".format(old_msgstr, change['msgstr'])
+                print("msgstr: {} -> {}".format(old_msgstr, change['msgstr']))
             elif 'fuzzy' in change:
                 old_fuzzy = 'fuzzy' in entry.flags
                 if old_fuzzy and not change['fuzzy']:
                     entry.flags.remove('fuzzy')
                 elif change['fuzzy'] and not old_fuzzy:
                     entry.flags.append('fuzzy')
-                print "fuzzy: {} -> {}".format(old_fuzzy, change['fuzzy'])
+                print("fuzzy: {} -> {}".format(old_fuzzy, change['fuzzy']))
             else:
                 raise NotImplementedError()
 
