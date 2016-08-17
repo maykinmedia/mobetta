@@ -4,10 +4,19 @@ from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from django.core.paginator import Paginator
 from django.forms import formset_factory
+from django.contrib import messages
+from django.utils.translation import ugettext as _
 
-from mobetta.util import find_pofiles, app_name_from_filepath, message_is_fuzzy
+from mobetta.util import (
+    find_pofiles,
+    app_name_from_filepath,
+    message_is_fuzzy,
+    update_translations,
+    update_metadata,
+)
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
+from mobetta import formsets
 
 
 class FileListView(ListView):
@@ -70,12 +79,15 @@ class FileDetailView(DetailView):
         if needs_pagination:
             page_range = range(1, 1 + paginator.num_pages)
 
-        TranslationFormSet = formset_factory(TranslationForm)
-        formset = TranslationFormSet(initial=[
+        TranslationFormSet = formset_factory(TranslationForm, formset=formsets.TranslationFormSet, max_num=self.translations_per_page)
+        formset = TranslationFormSet(
+            initial=[
             {
                 'msgid': trans['original'],
                 'translation': trans['translated'],
+                'old_translation': trans['translated'],
                 'fuzzy': trans['fuzzy'],
+                'old_fuzzy': trans['fuzzy'],
             } for trans in paginator.page(page).object_list
         ])
 
@@ -88,3 +100,43 @@ class FileDetailView(DetailView):
         })
 
         return ctx
+
+    def post(self, *args, **kwargs):
+        TranslationFormSet = formset_factory(TranslationForm, formset=formsets.TranslationFormSet, max_num=self.translations_per_page)
+        formset = TranslationFormSet(self.request.POST)
+
+        if formset.is_valid():
+            changes = []
+            for form in formset:
+                change_made = False
+                change = {'msgid': form.cleaned_data['msgid']}
+
+                if form.cleaned_data['translation'] != form.cleaned_data['old_translation']:
+                    change_made = True
+                    change.update({'msgstr': form.cleaned_data['translation']})
+                elif form.cleaned_data['fuzzy'] != form.cleaned_data['old_fuzzy']:
+                    change_made = True
+                    change.update({'fuzzy': form.cleaned_data['fuzzy']})
+
+                if change_made:
+                    changes.append(change)
+        else:
+            print formset.errors
+
+        self.object = self.get_object()
+
+        if len(changes) > 0:
+            pofile = self.object.get_polib_object()
+            update_translations(pofile, changes)
+
+            update_metadata(
+                pofile,
+                self.request.user.first_name,
+                self.request.user.last_name,
+                self.request.user.email,
+            )
+
+            pofile.save()
+
+        messages.success(self.request, _('Changed %d translations') % len(changes))
+        return self.render_to_response(self.get_context_data())

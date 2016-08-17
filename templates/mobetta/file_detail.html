@@ -13,7 +13,7 @@
     <div class="module">
         <h2>{% trans "Translations" %}</h2>
         <div id="toolbar">
-            <form id="changelist-search" action="" method="get">
+            <form id="translation-search" action="" method="get">
                 <div>
                     {% csrf_token %}
                     <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
@@ -22,48 +22,57 @@
                 </div>
             </form>
         </div>
-        <table cellspacing="0">
-            <thead>
-                <tr>
-                    <th>{% trans "Original" %}</th>
-                    <th>{% trans "Translation" %}</th>
-                    <th>{% trans "Fuzzy" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for form in formset %}
-                  <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
-                    <td>{{ form.msgid }}</td>
-                    <td>{{ form.translation }}</td>
-                    <td>{{ form.fuzzy }}</td>
+        <form id="translation-edit" action="" method="post">
+          {{ formset.management_form }}
+          {% csrf_token %}
+          <table cellspacing="0">
+              <thead>
+                  <tr>
+                      <th>{% trans "Original" %}</th>
+                      <th>{% trans "Translation" %}</th>
+                      <th>{% trans "Fuzzy" %}</th>
                   </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+              </thead>
+              <tbody>
+                  {% for form in formset %}
+                    <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
+                      <td>{{ form.msgid }}</td>
+                      <td>{{ form.translation }}</td>
+                      <td>{{ form.fuzzy }}</td>
+                    </tr>
+                    {{ form.old_translation }}
+                    {{ form.old_fuzzy }}
+                  {% endfor %}
+              </tbody>
+          </table>
 
-        <div class="submit-row">
-            <p class="paginator">
-                {% if needs_pagination %}
-                    {% trans "Skip to page:" %}
-                    {% for i in page_range %}
-                        {% if i == '...' %}
-                        <span class="space">{{ i }}</span>
-                        {% else %}
-                        {% if i == page %}
-                            <span class="this-page">{{i}}</span>
-                        {% else %}
-                            <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
-                        {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                    {% else %}
-                    {% trans "Displaying:" %}
-                {% endif %}
+          <input type="submit" />
 
-                {% with paginator.object_list|length as hits %}
-                    <strong>{% blocktrans count formset|length as message_number %}{{message_number}}/{{hits}} message{% plural %}{{message_number}}/{{hits}} messages{% endblocktrans %}</strong>
-                {% endwith %}
-            </p>
-        </div>
+          <div class="submit-row">
+
+              <p class="paginator">
+                  {% if needs_pagination %}
+                      {% trans "Skip to page:" %}
+                      {% for i in page_range %}
+                          {% if i == '...' %}
+                          <span class="space">{{ i }}</span>
+                          {% else %}
+                          {% if i == page %}
+                              <span class="this-page">{{i}}</span>
+                          {% else %}
+                              <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
+                          {% endif %}
+                          {% endif %}
+                      {% endfor %}
+                      {% else %}
+                      {% trans "Displaying:" %}
+                  {% endif %}
+
+                  {% with paginator.object_list|length as hits %}
+                      <strong>{% blocktrans count formset|length as message_number %}{{message_number}}/{{hits}} message{% plural %}{{message_number}}/{{hits}} messages{% endblocktrans %}</strong>
+                  {% endwith %}
+              </p>
+          </div>
+        </form>
     </div>
 {% endblock main %}

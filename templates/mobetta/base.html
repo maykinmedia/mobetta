@@ -14,6 +14,11 @@
 </head>
 <body>
     <div id="container">
+        {% for message in messages %}
+          <div class="alert alert-block {{ message.tags }}">
+            {% if 'safe' in message.tags %}{{ message|safe }}{% else %}{{ message }}{% endif %}
+          </div>
+        {% endfor %}
         <div id="header">
             {% block header %}
             <div id="branding">
