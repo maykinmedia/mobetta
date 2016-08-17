@@ -1,0 +1,19 @@
+*.py[co]
+__pycache__
+
+# Packaging/distribution
+*.egg-info
+*.eggs
+build/
+dist/
+
+# tests
+.tox
+.coverage
+cover
+tests/static
+
+# docs
+docs/_build
+docs/_static
+docs/_templates
