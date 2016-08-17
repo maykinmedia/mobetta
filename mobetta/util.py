@@ -137,6 +137,7 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
 
         # Convert AppConfig (Django 1.7+) to application module
         if django.VERSION[0:2] >= (1, 7):
+            from django.apps import AppConfig, apps
             if inspect.isclass(app) and issubclass(app, AppConfig):
                 has_appconfig = True
                 continue
@@ -179,7 +180,7 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
 
             internal_path = os.path.abspath(os.path.join(app_path, 'locale'))
             if os.path.exists(internal_path):
-                paths.append(internal)
+                paths.append(internal_path)
             external_path = os.path.abspath(os.path.join(app_path, '..', 'locale'))
             if os.path.exists(external_path):
                 paths.append(external_path)
