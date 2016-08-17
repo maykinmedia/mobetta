@@ -6,6 +6,8 @@ from django.core.paginator import Paginator
 from django.forms import formset_factory
 from django.contrib import messages
 from django.utils.translation import ugettext as _
+from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.cache import never_cache
 
 from mobetta.util import (
     find_pofiles,
@@ -16,9 +18,12 @@ from mobetta.util import (
 )
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
+from mobetta.access import can_translate
 from mobetta import formsets
 
 
+@never_cache
+@user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL)
 class FileListView(ListView):
 
     model = TranslationFile
@@ -29,6 +34,8 @@ class FileListView(ListView):
         return TranslationFile.objects.all()
 
 
+@never_cache
+@user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL)
 class FileDetailView(DetailView):
 
     model = TranslationFile
