@@ -43,10 +43,10 @@ def timestamp_for_metadata(dt=None):
 
 def update_metadata(pofile, first_name=None, last_name=None, email=None):
     pofile.metadata['Last-Translator'] = unicodedata.normalize('NFKD', u"%s %s <%s>" % (
-        first_name or 'Anonymous',
-        last_name or 'User',
-        email or 'anonymous@user.tld'
-    )).encode('ascii', 'ignore')
+        first_name or u'Anonymous',
+        last_name or u'User',
+        email or u'anonymous@user.tld'
+    ))
 
     pofile.metadata['X-Translated-Using'] = u"Mobetta %s" % get_version()
     pofile.metadata['PO-Revision-Date'] = timestamp_for_metadata()
