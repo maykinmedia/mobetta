@@ -5,7 +5,7 @@
 # 
 msgid ""
 msgstr ""
-"Project-Id-Version: Rosetta\n"
+"Project-Id-Version: Mobetta\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-10-21 12:21+0200\n"
 "PO-Revision-Date: 2008-09-22 11:02\n"
@@ -14,7 +14,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Translated-Using: django-rosetta 0.4.RC2\n"
+"X-Translated-Using: some-inferior-translation-software\n"
 
 
 msgid "String 1"

@@ -121,7 +121,8 @@ class FileDetailView(DetailView):
                 if change_made:
                     changes.append(change)
         else:
-            print(formset.errors)
+            # TODO: Handle an invalid form
+            pass
 
         self.object = self.get_object()
 
