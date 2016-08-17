@@ -1,3 +1,5 @@
+import re
+
 from django import forms
 
 class TranslationForm(forms.Form):
@@ -6,3 +8,26 @@ class TranslationForm(forms.Form):
     old_translation = forms.CharField(max_length=1024, widget=forms.HiddenInput(), required=False)
     fuzzy = forms.BooleanField(required=False)
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())
+
+    def clean(self):
+        cleaned_data = super(TranslationForm, self).clean()
+
+        regex = r'{(?:[a-zA-z]*|[0-9]*)}'
+
+        original_format_tokens = re.findall(regex, cleaned_data['msgid'])
+        translation_format_tokens = re.findall(regex, cleaned_data['translation'])
+        missing_tokens = set(original_format_tokens) ^ set(translation_format_tokens)
+
+        if missing_tokens:
+            error = 'The following tokens should be present in both the source text and the translation : {}.'
+            tokens = ', '.join([t for t in missing_tokens])
+
+            raise forms.ValidationError(error.format(tokens))
+
+    def is_updated(self):
+        translation = self.cleaned_data.get('translation')
+        old_translation = self.cleaned_data.get('old_translation')
+        fuzzy = self.cleaned_data.get('fuzzy')
+        old_fuzzy = self.cleaned_data.get('old_fuzzy')
+
+        return (translation != old_translation) or (fuzzy != old_fuzzy)

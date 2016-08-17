@@ -71,18 +71,12 @@ def update_translations(pofile, changes):
         entry = pofile.find(change['msgid'])
 
         if entry:
-            if 'msgstr' in change:
-                old_msgstr = entry.msgstr
-                entry.msgstr = change['msgstr']
-            elif 'fuzzy' in change:
-                old_fuzzy = 'fuzzy' in entry.flags
-                if old_fuzzy and not change['fuzzy']:
-                    entry.flags.remove('fuzzy')
-                elif change['fuzzy'] and not old_fuzzy:
-                    entry.flags.append('fuzzy')
-            else:
-                raise NotImplementedError()
+            entry.msgstr = change.get('msgstr') or entry.msgstr
 
+            if change['fuzzy'] and 'fuzzy' not in entry.flags:
+                entry.flags.append('fuzzy')
+            elif 'fuzzy' in entry.flags and not change['fuzzy']:
+                entry.flags.remove('fuzzy')
         else:
             raise RuntimeError("Entry not found!")
 

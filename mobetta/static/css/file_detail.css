@@ -1,0 +1,37 @@
+ul.changelist-filters {
+    font-weight: bold;
+    float: right;
+}
+
+ul.changelist-filters li {
+    display: block;
+    float: left;
+    margin-left: 5px;
+    height: 16px;
+}
+
+ul.changelist-filters a {
+    display: block;
+    float: left;
+    padding-top: 3px;
+    padding-right: 12px;
+    padding-bottom: 3px;
+    padding-left: 12px;
+    background-color: rgb(153, 153, 153);
+    background-image: none;
+    background-repeat: repeat;
+    background-attachment: scroll;
+    background-position: 0% 0%;
+    background-clip: border-box;
+    background-origin: padding-box;
+    background-size: auto auto;
+    border-radius: 15px;
+    font-weight: 400;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    color: #fff;
+}
+
+ul.changelist-filters a:link, ul.changelist-filters a:visited {
+    text-decoration: none;
+}
