@@ -13,7 +13,7 @@ setup(
     license='MIT',
 
     # packaging
-    install_requires=['Django>=1.8'],
+    install_requires=['Django>=1.8','polib'],
     include_package_data=True,
     packages=find_packages(),
 
