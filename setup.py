@@ -9,14 +9,23 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='mobetta',
-    version='0.1',
-    packages=find_packages(),
+    version='0.0.1',
+    license='MIT',
+
+    # packaging
+    install_requires=['Django>=1.8'],
     include_package_data=True,
-    license='BSD License',  # example license
+    packages=find_packages(),
+
+    # tests
+    test_suite='runtests.runtests',
+    tests_require=['coverage'],
+
+    # metadata
     description='A Django package for managing translation files',
     long_description=README,
     url='https://www.example.com/',
-    author='Ben Wadsworth',
+    author='Maykin Media, Ben Wadsworth',
     author_email='ben@maykinmedia.nl',
     classifiers=[
         'Environment :: Web Environment',
