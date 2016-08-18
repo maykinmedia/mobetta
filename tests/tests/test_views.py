@@ -4,41 +4,50 @@ import os
 import shutil
 from decimal import Decimal
 
-from django_webtest import WebTest
-
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 from django.conf import settings
 
+from .factories import AdminFactory
+from .utils import POFileTestCase
+
 from mobetta.models import TranslationFile
-from tests.app.factory_models import AdminFactory
+
+from django_webtest import WebTest
 
 
-class FileDetailViewTests(WebTest):
+def get_field_prefix(form, field_name, value):
+    """
+    Return the field prefix for the matching 'field_name' and 'value'.
 
-    urls = 'mobetta.urls'
+    :param form:       a webtest.forms.Form instance
+    :param field_name: a string
+    :param value:      a string
+    """
+    field = next(
+        (field for field in form.fields
+            if (field is not None) and (field_name in field) and (form[field].value == value))
+        , None
+    )
+
+    return '-'.join(field.split('-')[:2]) if field else None
+
+
+class FileDetailViewTests(POFileTestCase, WebTest):
 
     def setUp(self):
+        super(FileDetailViewTests, self).setUp()
+
         self.admin_user = AdminFactory.create()
-
-        trans_dir = os.path.join(settings.PROJECT_DIR, 'locale', 'nl', 'LC_MESSAGES')
-        shutil.copy(os.path.join(trans_dir, 'django.po.example'), os.path.join(trans_dir, 'django.po'))
-
-        self.pofile_path = os.path.join(trans_dir, 'django.po')
-        call_command('locate_translation_files')
+        self.url = reverse('file_detail', args=(self.transfile.pk,))
 
     def test_single_edit(self):
         """
         Go to the file detail view, make an edit to a translation, and submit.
         Check that this translation has changed in the PO file.
         """
-        self.assertEqual(TranslationFile.objects.all().count(), 1)
-        transfile = TranslationFile.objects.all().first()
-
-        url = reverse('file_detail', kwargs={'pk': transfile.pk})
-
-        response = self.app.get(url, user=self.admin_user)
+        response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         translation_edit_form = response.forms['translation-edit']
@@ -53,7 +62,7 @@ class FileDetailViewTests(WebTest):
         self.assertEqual(response.status_code, 200)
 
         # Check the file
-        pofile = transfile.get_polib_object()
+        pofile = self.transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_to_edit).msgstr, new_translation)
 
     def test_multiple_edits(self):
@@ -61,12 +70,7 @@ class FileDetailViewTests(WebTest):
         Go to the file detail view, make an edit to one translation, one context,
         and one 'fuzzy' attribute. Check that these edits are in the PO file.
         """
-        self.assertEqual(TranslationFile.objects.all().count(), 1)
-        transfile = TranslationFile.objects.all().first()
-
-        url = reverse('file_detail', kwargs={'pk': transfile.pk})
-
-        response = self.app.get(url, user=self.admin_user)
+        response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         translation_edit_form = response.forms['translation-edit']
@@ -90,7 +94,7 @@ class FileDetailViewTests(WebTest):
         self.assertEqual(response.status_code, 200)
 
         # Check the file
-        pofile = transfile.get_polib_object()
+        pofile = self.transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_for_context_edit).msgctxt, new_context)
         self.assertEqual(pofile.find(msgid_for_translation_edit).msgstr, new_translation)
         self.assertIn('fuzzy', pofile.find(msgid_for_fuzzy_edit).flags)
@@ -102,17 +106,12 @@ class FileDetailViewTests(WebTest):
         The second user's edit should be blocked, and the old_translation field should
         reflect the result of the first user's edit.
         """
-        self.assertEqual(TranslationFile.objects.all().count(), 1)
-        transfile = TranslationFile.objects.all().first()
-
         first_user = AdminFactory.create()
         second_user = AdminFactory.create()
 
-        url = reverse('file_detail', kwargs={'pk': transfile.pk})
-
-        first_user_response = self.app.get(url, user=first_user)
+        first_user_response = self.app.get(self.url, user=first_user)
         self.assertEqual(first_user_response.status_code, 200)
-        second_user_response = self.app.get(url, user=second_user)
+        second_user_response = self.app.get(self.url, user=second_user)
         self.assertEqual(second_user_response.status_code, 200)
 
         id_field_id_to_edit = 'form-0-msgid'
@@ -144,34 +143,174 @@ class FileDetailViewTests(WebTest):
         second_user_edit_form = second_user_response.forms['translation-edit']
         self.assertEqual(second_user_edit_form[old_trans_field_id_to_edit].value, first_user_new_translation)
 
-        pofile = transfile.get_polib_object()
+        pofile = self.transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_for_edit).msgstr, first_user_new_translation)
 
+    def test_get_access_if_authenticated(self):
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
 
-class FileListViewTests(WebTest):
+    def test_get_redirect_to_login_page_if_not_authenticated(self):
+        response = self.app.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login/?next=' + self.url, response['Location'])
 
-    urls = 'mobetta.urls'
+    def test_display_translation_error(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix + '-translation'] = 'Un token.'
+
+        response = form.submit()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="errorlist nonfield"', count=1)
+
+    def test_display_translations_errors(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+        self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix + '-translation'] = 'Un token.'
+
+        prefix = get_field_prefix(form, 'msgid', 'An other {important} token')
+        form[prefix + '-translation'] = 'Un autre token.'
+
+        response = form.submit()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="errorlist nonfield"', count=2)
+
+    def test_success_to_change_one_fuzzy_field(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.', fuzzy=False)
+
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+        form = response.forms['translation-edit']
+
+        prefix = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix + '-fuzzy'] = True
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<li class="success">Changed 1 translations</li>')
+
+        #form = response.forms['translation-edit']
+        #self.assertTrue(form[prefix + '-fuzzy'])
+
+    def test_success_to_change_several_fuzzy_fields(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+        self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix1 = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix1 + '-fuzzy'] = True
+
+        prefix2 = get_field_prefix(form, 'msgid', 'An other {important} token')
+        form[prefix2 + '-fuzzy'] = True
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<li class="success">Changed 2 translations</li>')
+
+        #form = response.forms['translation-edit']
+        #self.assertTrue(form[prefix1 + '-fuzzy'])
+        #self.assertTrue(form[prefix2 + '-fuzzy'])
+
+    def test_success_to_change_one_translation_field(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix1 = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix1 + '-translation'] = 'Un token tres {important}.'
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<li class="success">Changed 1 translations</li>')
+
+        #form = response.forms['translation-edit']
+        #self.assertEqual(form[prefix1 + '-translation'].value, 'Un token tres {important}.')
+
+    def test_success_to_change_several_translation_field(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+        self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix1 = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix1 + '-translation'] = 'Un token tres {important}.'
+
+        prefix2 = get_field_prefix(form, 'msgid', 'An other {important} token')
+        form[prefix2 + '-translation'] = 'Un autre token tres {important}.'
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<li class="success">Changed 2 translations</li>')
+
+        #form = response.forms['translation-edit']
+        #self.assertEqual(form[prefix1 + '-translation'].value, 'Un token tres {important}.')
+        #self.assertEqual(form[prefix2 + '-translation'].value, 'Un autre token tres {important}.')
+
+    def test_display_message_if_no_translation_have_been_changed(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, '<li class="success">Changed 0 translations</li>')
+
+    def test_display_message_if_several_translations_have_been_changed(self):
+        self.create_poentry(u'An {important} token', u'Un token {important}.')
+        self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        form = response.forms['translation-edit']
+
+        prefix = get_field_prefix(form, 'msgid', 'An {important} token')
+        form[prefix + '-translation'] = 'Un token tres {important}.'
+
+        prefix = get_field_prefix(form, 'msgid', 'An other {important} token')
+        form[prefix + '-translation'] = 'Un autre token tres {important}.'
+
+        response = form.submit().follow()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, '<li class="success">Changed 2 translations</li>')
+
+
+class FileListViewTests(POFileTestCase, WebTest):
 
     def setUp(self):
+        super(FileListViewTests, self).setUp()
+
         self.admin_user = AdminFactory.create()
-
-        trans_dir = os.path.join(settings.PROJECT_DIR, 'locale', 'nl', 'LC_MESSAGES')
-        shutil.copy(os.path.join(trans_dir, 'statstest.po.example'), os.path.join(trans_dir, 'django.po'))
-
-        self.pofile_path = os.path.join(trans_dir, 'django.po')
-        call_command('locate_translation_files')
+        self.url = reverse('file_list')
 
     def test_file_stats(self):
-        self.assertEqual(TranslationFile.objects.all().count(), 1)
-        transfile = TranslationFile.objects.all().first()
 
-        url = reverse('file_list')
-
-        response = self.app.get(url, user=self.admin_user)
+        response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         soup = response.html
-        file_row = soup.find('tr', id="file_detail_{}".format(transfile.pk))
+        file_row = soup.find('tr', id="file_detail_{}".format(self.transfile.pk))
 
         col_titles = ['appname', 'percent_translated', 'total_messages', 'translated', 'fuzzy', 'obsolete', 'filename', 'created']
 
@@ -184,3 +323,4 @@ class FileListViewTests(WebTest):
         self.assertEqual(int(stats_results['fuzzy']), 0)
         self.assertEqual(int(stats_results['obsolete']), 0)
         self.assertEqual(stats_results['filename'], self.pofile_path)
+
