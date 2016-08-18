@@ -1,6 +1,6 @@
 from django.conf.urls import url
 
-from .views import FileListView, FileDetailView
+from .views import FileDetailView, FileListView
 
 
 urlpatterns = [

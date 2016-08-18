@@ -1,10 +1,12 @@
 import re
 
 from django.shortcuts import render
-from django.views.generic import ListView, DetailView
+from django.views.generic import FormView, ListView
 from django.core.paginator import Paginator
+from django.core.urlresolvers import reverse
 from django.forms import formset_factory
 from django.contrib import messages
+from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import user_passes_test
@@ -37,16 +39,22 @@ class FileListView(ListView):
         return TranslationFile.objects.all()
 
 
-class FileDetailView(DetailView):
-
-    model = TranslationFile
-    context_object_name = 'file'
+class FileDetailView(FormView):
     template_name = 'mobetta/file_detail.html'
+    form_class = formset_factory(
+        TranslationForm,
+        formset=formsets.TranslationFormSet,
+        extra=0,
+    )
     translations_per_page = 20
 
     @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
-    def dispatch(self, *args, **kwargs):
-        return super(FileDetailView, self).dispatch(*args, **kwargs)
+    def dispatch(self, request, *args, **kwargs):
+        self.file = get_object_or_404(
+            TranslationFile,
+            pk=self.request.resolver_match.kwargs['pk']
+        )
+        return super(FileDetailView, self).dispatch(request, *args, **kwargs)
 
     def filter_by_search_tag(self, entries, tag):
         regex = re.compile(tag)
@@ -64,8 +72,62 @@ class FileDetailView(DetailView):
         }
         return getattr(pofile, filters[type])() if type in filters else pofile
 
+    def form_invalid(self, form):
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def form_valid(self, form):
+        updates = [{
+            'msgid': f.cleaned_data['msgid'],
+            'msgstr': f.cleaned_data['translation'],
+            'fuzzy': f.cleaned_data['fuzzy']
+        } for f in form if f.is_updated()]
+
+        if any(updates):
+            pofile = self.file.get_polib_object()
+            update_translations(pofile, updates)
+
+            update_metadata(
+                pofile,
+                self.request.user.first_name,
+                self.request.user.last_name,
+                self.request.user.email,
+            )
+
+            pofile.save()
+
+        messages.success(self.request, _('Changed %d translations') % len(updates))
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_context_data(self, **kwargs):
+        ctx = super(FileDetailView, self).get_context_data(**kwargs)
+
+        translations = self.get_translations()
+
+        paginator = Paginator(translations, self.translations_per_page)
+        page = self.get_page(paginator)
+
+        ctx['formset'] = ctx.pop('form')
+        ctx['formset'].initial = [
+            {
+                'msgid': translation['original'],
+                'translation': translation['translated'],
+                'old_translation': translation['translated'],
+                'fuzzy': translation['fuzzy'],
+                'old_fuzzy': translation['fuzzy'],
+            }
+            for translation in page
+        ]
+
+        ctx.update({
+            'page': page,
+            'file': self.file
+        })
+
+        return ctx
+
     def get_entries(self):
-        entries = self.object.get_polib_object()
+        entries = self.file.get_polib_object()
 
         type_filter = self.request.GET.get('type')
         if type_filter:
@@ -76,6 +138,18 @@ class FileDetailView(DetailView):
             entries = self.filter_by_search_tag(entries, search_filter)
 
         return entries
+
+    def get_page(self, paginator):
+        page = self.request.GET.get('page')
+        try:
+            entries = paginator.page(page)
+        except:
+            entries = paginator.page(1)
+
+        return entries
+
+    def get_success_url(self):
+        return reverse('file_detail', args=(self.file.pk,))
 
     def get_translations(self):
         entries = self.get_entries()
@@ -91,81 +165,3 @@ class FileDetailView(DetailView):
         ]
 
         return translations
-
-    def get_context_data(self, *args, **kwargs):
-        ctx = super(FileDetailView, self).get_context_data(*args, **kwargs)
-
-        translations = self.get_translations()
-        paginator = Paginator(translations, self.translations_per_page)
-
-        if 'page' in self.request.GET and int(self.request.GET.get('page')) <= paginator.num_pages and int(self.request.GET.get('page')) > 0:
-            page = int(self.request.GET.get('page'))
-        else:
-            page = 1
-
-        needs_pagination = paginator.num_pages > 1
-        if needs_pagination:
-            page_range = range(1, 1 + paginator.num_pages)
-
-        TranslationFormSet = formset_factory(TranslationForm, formset=formsets.TranslationFormSet, max_num=self.translations_per_page)
-        formset = TranslationFormSet(
-            initial=[
-            {
-                'msgid': trans['original'],
-                'translation': trans['translated'],
-                'old_translation': trans['translated'],
-                'fuzzy': trans['fuzzy'],
-                'old_fuzzy': trans['fuzzy'],
-            } for trans in paginator.page(page).object_list
-        ])
-
-        ctx.update({
-            'formset': formset,
-            'paginator': paginator,
-            'needs_pagination': needs_pagination,
-            'page_range': needs_pagination and page_range,
-            'page': page,
-        })
-
-        return ctx
-
-    def post(self, *args, **kwargs):
-        TranslationFormSet = formset_factory(TranslationForm, formset=formsets.TranslationFormSet, max_num=self.translations_per_page)
-        formset = TranslationFormSet(self.request.POST)
-
-        if formset.is_valid():
-            changes = []
-            for form in formset:
-                change_made = False
-                change = {'msgid': form.cleaned_data['msgid']}
-
-                if form.cleaned_data['translation'] != form.cleaned_data['old_translation']:
-                    change_made = True
-                    change.update({'msgstr': form.cleaned_data['translation']})
-                elif form.cleaned_data['fuzzy'] != form.cleaned_data['old_fuzzy']:
-                    change_made = True
-                    change.update({'fuzzy': form.cleaned_data['fuzzy']})
-
-                if change_made:
-                    changes.append(change)
-        else:
-            # TODO: Handle an invalid form
-            pass
-
-        self.object = self.get_object()
-
-        if len(changes) > 0:
-            pofile = self.object.get_polib_object()
-            update_translations(pofile, changes)
-
-            update_metadata(
-                pofile,
-                self.request.user.first_name,
-                self.request.user.last_name,
-                self.request.user.email,
-            )
-
-            pofile.save()
-
-        messages.success(self.request, _('Changed %d translations') % len(changes))
-        return self.render_to_response(self.get_context_data())
