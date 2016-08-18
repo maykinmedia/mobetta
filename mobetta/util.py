@@ -72,6 +72,7 @@ def update_translations(pofile, changes):
 
         if entry:
             entry.msgstr = change.get('msgstr') or entry.msgstr
+            entry.msgctxt = change.get('context') or entry.msgctxt
 
             if change.get('fuzzy') and 'fuzzy' not in entry.flags:
                 entry.flags.append('fuzzy')

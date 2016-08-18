@@ -79,7 +79,8 @@ class FileDetailView(FormView):
         updates = [{
             'msgid': f.cleaned_data['msgid'],
             'msgstr': f.cleaned_data['translation'],
-            'fuzzy': f.cleaned_data['fuzzy']
+            'fuzzy': f.cleaned_data['fuzzy'],
+            'context': f.cleaned_data['context'],
         } for f in form if f.is_updated()]
 
         if any(updates):
@@ -115,6 +116,8 @@ class FileDetailView(FormView):
                 'old_translation': translation['translated'],
                 'fuzzy': translation['fuzzy'],
                 'old_fuzzy': translation['fuzzy'],
+                'context': translation['context'],
+                'old_context': translation['context'],
             }
             for translation in page
         ]
@@ -160,6 +163,7 @@ class FileDetailView(FormView):
                 'translated': entry.msgstr,
                 'obsolete': entry.obsolete,
                 'fuzzy': message_is_fuzzy(entry),
+                'context': entry.msgctxt,
             }
             for entry in entries
         ]
