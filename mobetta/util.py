@@ -73,9 +73,9 @@ def update_translations(pofile, changes):
         if entry:
             entry.msgstr = change.get('msgstr') or entry.msgstr
 
-            if change['fuzzy'] and 'fuzzy' not in entry.flags:
+            if change.get('fuzzy') and 'fuzzy' not in entry.flags:
                 entry.flags.append('fuzzy')
-            elif 'fuzzy' in entry.flags and not change['fuzzy']:
+            elif 'fuzzy' in entry.flags and not change.get('fuzzy'):
                 entry.flags.remove('fuzzy')
         else:
             raise RuntimeError("Entry not found!")
