@@ -1,85 +1,90 @@
-{% extends "mobetta/base.html" %}{% load admin_static %}
+{% extends "admin/change_list.html" %}{% load admin_static %}
 {% load i18n %}
 
 {% block pagetitle %}{{ block.super }} - {% trans "Translations" %}{% endblock %}
 
 {% block breadcrumbs %}
-    <div>{% trans "Home" %} &rsaquo; {% trans "Translations" %}</div>
+    <div class="breadcrumbs"><a href="{% url 'file_list' %}">{% trans "Home" %}</a> &rsaquo; {% trans "Translations" %}</div>
 {% endblock breadcrumbs %}
 
-{% block main %}
-    <h1>&nbsp;</h1>
+{% block content %}
+<div id="content-main">
+{% block object-tools %}
+  <ul class="object-tools">
+    {% block object-tools-items %}
+      <li><a href="{% url 'file_detail' pk=object.pk %}">All</a></li>
+      <li><a href="{% url 'file_detail' pk=object.pk %}?type=fuzzy">Fuzzy</a></li>
+      <li><a href="{% url 'file_detail' pk=object.pk %}?type=translated">Translated</a></li>
+      <li><a href="{% url 'file_detail' pk=object.pk %}?type=untranslated">Untranslated</a></li>
+    {% endblock %}
+  </ul>
+{% endblock %}
 
-    <div class="module">
-        <h2>{% trans "Translations" %}</h2>
-        <div id="toolbar">
-            <form id="translation-search" action="" method="get">
-                <div>
-                    {% csrf_token %}
-                    <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
-                    <input type="text" size="40" name="query" value="{% if query %}{{query}}{% endif %}" id="searchbar" tabindex="0" />
-                    <input type="submit" name="search" value="{% trans "Go" %}" />
-
-                    <ul class="changelist-filters">
-                        <li><a href="{% url 'file_detail' pk=object.pk %}">All</a></li>
-                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=fuzzy">Fuzzy</a></li>
-                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=translated">Translated</a></li>
-                        <li><a href="{% url 'file_detail' pk=object.pk %}?type=untranslated">Untranslated</a></li>
-                    </ul>
-                </div>
-            </form>
-        </div>
-        <form id="translation-edit" action="" method="post">
-          {{ formset.management_form }}
-          {% csrf_token %}
-          <table cellspacing="0">
-              <thead>
-                  <tr>
-                      <th>{% trans "Original" %}</th>
-                      <th>{% trans "Translation" %}</th>
-                      <th>{% trans "Fuzzy" %}</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {% for form in formset %}
-                    <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
-                      <td>{{ form.msgid }}</td>
-                      <td>{{ form.translation }}</td>
-                      <td>{{ form.fuzzy }}</td>
-                    </tr>
-                    {{ form.old_translation }}
-                    {{ form.old_fuzzy }}
-                  {% endfor %}
-              </tbody>
-          </table>
-
-          <input type="submit" />
-
-          <div class="submit-row">
-
-              <p class="paginator">
-                  {% if needs_pagination %}
-                      {% trans "Skip to page:" %}
-                      {% for i in page_range %}
-                          {% if i == '...' %}
-                          <span class="space">{{ i }}</span>
-                          {% else %}
-                          {% if i == page %}
-                              <span class="this-page">{{i}}</span>
-                          {% else %}
-                              <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
-                          {% endif %}
-                          {% endif %}
-                      {% endfor %}
-                      {% else %}
-                      {% trans "Displaying:" %}
-                  {% endif %}
-
-                  {% with paginator.object_list|length as hits %}
-                      <strong>{% blocktrans count formset|length as message_number %}{{message_number}}/{{hits}} message{% plural %}{{message_number}}/{{hits}} messages{% endblocktrans %}</strong>
-                  {% endwith %}
-              </p>
+<div class="module" id="changelist">
+  <div id="toolbar">
+      <form id="changelist-search" action="" method="get">
+          <div>
+              {% csrf_token %}
+              <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
+              <input type="text" size="40" name="query" value="{% if query %}{{query}}{% endif %}" id="searchbar" tabindex="0" />
+              <input type="submit" name="search" value="{% trans "Go" %}" />
           </div>
-        </form>
+      </form>
+  </div>
+
+  <form id="changelist-form" action="" method="post">
+    {{ formset.management_form }}
+    {% csrf_token %}
+    <table cellspacing="0">
+        <thead>
+            <tr>
+                <th>{% trans "Original" %}</th>
+                <th>{% trans "Translation" %}</th>
+                <th>{% trans "Fuzzy" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% block result_list %}
+            {% for form in formset %}
+              <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
+                <td>{{ form.msgid }}</td>
+                <td>{{ form.translation }}</td>
+                <td>{{ form.fuzzy }}</td>
+              </tr>
+              {{ form.old_translation }}
+              {{ form.old_fuzzy }}
+            {% endfor %}
+        {% endblock result_list %}
+        </tbody>
+    </table>
+    <div class="submit-row">
+    <input type="submit" />
+        {% block pagination %}
+          <p class="paginator">
+          {% if needs_pagination %}
+            {% trans "Skip to page:" %}
+            {% for i in page_range %}
+              {% if i == '...' %}
+              <span class="space">{{ i }}</span>
+              {% else %}
+              {% if i == page %}
+                  <span class="this-page">{{i}}</span>
+              {% else %}
+                  <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
+              {% endif %}
+              {% endif %}
+            {% endfor %}
+            {% else %}
+            {% trans "Displaying:" %}
+          {% endif %}
+
+          {% with paginator.object_list|length as hits %}
+              <strong>{% blocktrans count formset|length as message_number %}{{message_number}}/{{hits}} message{% plural %}{{message_number}}/{{hits}} messages{% endblocktrans %}</strong>
+            {% endwith %}
+          </p>
+        {% endblock pagination %}
     </div>
-{% endblock main %}
+  </form>
+</div>
+{% endblock content %}
+
