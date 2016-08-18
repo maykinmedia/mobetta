@@ -8,6 +8,8 @@ class TranslationForm(forms.Form):
     old_translation = forms.CharField(max_length=1024, widget=forms.HiddenInput(), required=False)
     fuzzy = forms.BooleanField(required=False)
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())
+    context = forms.CharField(max_length=1024, required=False)
+    old_context = forms.CharField(max_length=1024, widget=forms.HiddenInput(), required=False)
 
     def clean(self):
         cleaned_data = super(TranslationForm, self).clean()
@@ -29,5 +31,7 @@ class TranslationForm(forms.Form):
         old_translation = self.cleaned_data.get('old_translation')
         fuzzy = self.cleaned_data.get('fuzzy')
         old_fuzzy = self.cleaned_data.get('old_fuzzy')
+        context = self.cleaned_data.get('context')
+        old_context = self.cleaned_data.get('old_context')
 
-        return (translation != old_translation) or (fuzzy != old_fuzzy)
+        return (translation != old_translation) or (fuzzy != old_fuzzy) or (context != old_context)

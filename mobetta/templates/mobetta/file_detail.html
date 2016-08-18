@@ -59,6 +59,7 @@
                     <thead>
                         <tr>
                             <th>{% trans "Original" %}</th>
+                            <th>{% trans "Context" %}</th>
                             <th>{% trans "Translation" %}</th>
                             <th>{% trans "Fuzzy" %}</th>
                         </tr>
@@ -68,6 +69,7 @@
                         {% for form in formset %}
                             <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
                                 <td>{{ form.msgid }}</td>
+                                <td>{{ form.context }}</td>
                                 <td>
                                     {{ form.translation }}
                                     {{ form.non_field_errors }}
@@ -76,6 +78,7 @@
                             </tr>
                             {{ form.old_translation }}
                             {{ form.old_fuzzy }}
+                            {{ form.old_context }}
                         {% endfor %}
                     </tbody>
                 </table>
