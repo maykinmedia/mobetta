@@ -3,7 +3,6 @@ import polib
 from django.db import models
 
 
-# Create your models here.
 class TranslationFile(models.Model):
 
     name = models.CharField(max_length=512, blank=False, null=False)

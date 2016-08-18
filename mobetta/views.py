@@ -6,6 +6,9 @@ from django.core.paginator import Paginator
 from django.forms import formset_factory
 from django.contrib import messages
 from django.utils.translation import ugettext as _
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import user_passes_test
+from django.conf import settings
 
 from mobetta.util import (
     find_pofiles,
@@ -16,6 +19,7 @@ from mobetta.util import (
 )
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
+from mobetta.access import can_translate
 from mobetta import formsets
 
 
@@ -24,6 +28,10 @@ class FileListView(ListView):
     model = TranslationFile
     context_object_name = 'files'
     template_name = 'mobetta/file_list.html'
+
+    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    def dispatch(self, *args, **kwargs):
+        return super(FileListView, self).dispatch(*args, **kwargs)
 
     def get_queryset(self):
         return TranslationFile.objects.all()
@@ -35,6 +43,10 @@ class FileDetailView(DetailView):
     context_object_name = 'file'
     template_name = 'mobetta/file_detail.html'
     translations_per_page = 20
+
+    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    def dispatch(self, *args, **kwargs):
+        return super(FileDetailView, self).dispatch(*args, **kwargs)
 
     def filter_by_search_tag(self, entries, tag):
         regex = re.compile(tag)
