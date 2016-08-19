@@ -50,36 +50,71 @@ def update_metadata(pofile, first_name=None, last_name=None, email=None):
 
     pofile.metadata['X-Translated-Using'] = u"Mobetta %s" % get_version()
     pofile.metadata['PO-Revision-Date'] = timestamp_for_metadata()
-    pofile.save()
 
 
-def update_translations(pofile, changes):
+def update_translations(pofile, form_changes):
     """
     Takes in a ``POFile`` (from `polib`) and a list of changes, and applies these changes
     to the PO file.
     Format of changes:
         [
-            {
+            (<form>, [
+                {
                 'msgid': <msgid>,
-                '<attrib_name>': '<new_value>',
+                'field': '<field_name>',
+                'from': '<old_value>',
+                'to': '<new_value>',
+                },
                 ...
-            },
+            ]),
             ...
         ]
     """
-    for change in changes:
-        entry = pofile.find(change['msgid'])
+    applied_changes = []
+    rejected_changes = []
 
-        if entry:
-            entry.msgstr = change.get('msgstr') or entry.msgstr
-            entry.msgctxt = change.get('context') or entry.msgctxt
+    for form, changes in form_changes:
+        for change in changes:
+            entry = pofile.find(change['msgid'])
 
-            if change.get('fuzzy') and 'fuzzy' not in entry.flags:
-                entry.flags.append('fuzzy')
-            elif 'fuzzy' in entry.flags and not change.get('fuzzy'):
-                entry.flags.remove('fuzzy')
-        else:
-            raise RuntimeError("Entry not found!")
+            if entry:
+                # Check that the 'from' attr is the same as the current content
+                if change['field'] == 'translation':
+                    if entry.msgstr == change['from']:
+                        entry.msgstr = change['to']
+                        applied_changes.append((form, change))
+                    else:
+                        change.update({
+                            'po_value': entry.msgstr
+                        })
+                        rejected_changes.append((form, change))
+
+                elif change['field'] == 'fuzzy':
+                    if ('fuzzy' in entry.flags) == change['from']:
+                        if change['to'] and 'fuzzy' not in entry.flags:
+                            entry.flags.append('fuzzy')
+                        elif not change['to'] and 'fuzzy' in entry.flags:
+                            entry.flags.remove('fuzzy')
+                        applied_changes.append((form, change))
+                    else:
+                        change.update({
+                            'po_value': 'fuzzy' in entry.flags
+                        })
+                        rejected_changes.append((form, change))
+
+                elif change['field'] == 'context':
+                    if entry.msgctxt == change['from']:
+                        entry.msgctxt = change['to']
+                        applied_changes.append((form, change))
+                    else:
+                        change.update({
+                            'po_value': entry.msgctxt
+                        })
+                        rejected_changes.append((form, change))
+            else:
+                raise RuntimeError("Entry not found!")
+
+    return applied_changes, rejected_changes
 
 
 def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=False):

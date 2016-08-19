@@ -35,3 +35,19 @@ class TranslationForm(forms.Form):
         old_context = self.cleaned_data.get('old_context')
 
         return (translation != old_translation) or (fuzzy != old_fuzzy) or (context != old_context)
+
+    def get_changes(self):
+        changes = []
+
+        for fieldname in ['translation', 'fuzzy', 'context']:
+            old_val = self.cleaned_data.get("old_{}".format(fieldname))
+            new_val = self.cleaned_data.get(fieldname)
+            if new_val != old_val:
+                changes.append({
+                    'msgid': self.cleaned_data['msgid'],
+                    'field': fieldname,
+                    'from': old_val,
+                    'to': new_val,
+                })
+
+        return changes
