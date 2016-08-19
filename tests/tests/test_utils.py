@@ -40,19 +40,44 @@ class POFileTests(TestCase):
 
         msgid_to_change = u"String 1"
         current_msgstr = pofile.find(msgid_to_change).msgstr
-        self.assertEqual(current_msgstr, u"")
+        initial_value = u""
+        self.assertEqual(current_msgstr, initial_value)
 
         new_msgstr = u"A nĕw Štring"
 
+        """
+        Format of changes:
+        [
+            (<form>, [
+                {
+                'msgid': <msgid>,
+                'field': '<field_name>',
+                'from': '<old_value>',
+                'to': '<new_value>',
+                },
+                ...
+            ]),
+            ...
+        ]
+        """
+
         # Make a change to a translation
         changes = [
-            {
-                'msgid': msgid_to_change, # Original message
-                'msgstr': new_msgstr, # New string to use for that message
-            }
+            (None, [
+                {
+                    'msgid': msgid_to_change, # Original message
+                    'field': 'translation', # Field to change
+                    'from': initial_value,
+                    'to': new_msgstr, # New string to use for that message
+                },
+            ]),
         ]
 
-        util.update_translations(pofile, changes)
+        applied_changes, rejected_changes = util.update_translations(pofile, changes)
+
+        self.assertEqual(len(applied_changes), 1)
+        self.assertEqual(len(rejected_changes), 0)
+
         pofile.save()
 
         # Reload the file

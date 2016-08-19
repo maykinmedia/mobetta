@@ -9,20 +9,16 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
+from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import user_passes_test
 from django.conf import settings
+from django.http import HttpResponseRedirect
 
-from mobetta.util import (
-    find_pofiles,
-    app_name_from_filepath,
-    message_is_fuzzy,
-    update_translations,
-    update_metadata,
-)
+from mobetta import util
+from mobetta import formsets
 from mobetta.models import TranslationFile
 from mobetta.forms import TranslationForm
 from mobetta.access import can_translate
-from mobetta import formsets
 
 
 class FileListView(ListView):
@@ -48,6 +44,7 @@ class FileDetailView(FormView):
     )
     translations_per_page = 20
 
+    @method_decorator(never_cache)
     @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
     def dispatch(self, request, *args, **kwargs):
         self.file = get_object_or_404(
@@ -76,29 +73,53 @@ class FileDetailView(FormView):
         return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
-        updates = [{
-            'msgid': f.cleaned_data['msgid'],
-            'msgstr': f.cleaned_data['translation'],
-            'fuzzy': f.cleaned_data['fuzzy'],
-            'context': f.cleaned_data['context'],
-        } for f in form if f.is_updated()]
+        changes = []
+        for f in form:
+            if f.is_updated():
+                changes.append((f, f.get_changes()))
 
-        if any(updates):
+        if any(changes):
             pofile = self.file.get_polib_object()
-            update_translations(pofile, updates)
 
-            update_metadata(
-                pofile,
-                self.request.user.first_name,
-                self.request.user.last_name,
-                self.request.user.email,
-            )
+            applied_changes, rejected_changes = util.update_translations(pofile, changes)
 
-            pofile.save()
+            # Only update the metadata if we've actually made some changes
+            if len(applied_changes) > 0:
+                util.update_metadata(
+                    pofile,
+                    self.request.user.first_name,
+                    self.request.user.last_name,
+                    self.request.user.email,
+                )
 
-        messages.success(self.request, _('Changed %d translations') % len(updates))
+                pofile.save()
 
-        return self.render_to_response(self.get_context_data(form=form))
+                messages.success(self.request, _('Changed %d translations') % len(applied_changes))
+
+            # Add messages/errors about rejected changes
+            if len(rejected_changes) > 0:
+                for f, change in rejected_changes:
+                    # We need to update the old_<fieldname> value on the forms
+                    # before we give them back to the user, to update them
+                    # to the new values in the PO file.
+                    form_data = f.cleaned_data
+                    form_data.update({
+                        'old_{}'.format(change['field']): change['po_value']
+                    })
+                    new_form_data = {
+                        '{}-{}'.format(f.prefix, k) : form_data[k]
+                        for k in form_data.keys()
+                    }
+                    f.data = new_form_data
+
+                    # Add an error message to the field as well as a message
+                    # in the top of the view.
+                    f.add_error(change['field'], _("This value was edited while you were editing it (new value: %s)") % (change['po_value']))
+                    messages.error(self.request, _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid']))
+
+                return self.form_invalid(form)
+
+        return HttpResponseRedirect(reverse('file_list'))
 
     def get_context_data(self, **kwargs):
         ctx = super(FileDetailView, self).get_context_data(**kwargs)
@@ -162,7 +183,7 @@ class FileDetailView(FormView):
                 'original': entry.msgid,
                 'translated': entry.msgstr,
                 'obsolete': entry.obsolete,
-                'fuzzy': message_is_fuzzy(entry),
+                'fuzzy': util.message_is_fuzzy(entry),
                 'context': entry.msgctxt,
             }
             for entry in entries

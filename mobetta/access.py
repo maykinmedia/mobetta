@@ -32,7 +32,7 @@ def is_superuser_staff_or_in_translators_group(user):
     try:
         if not user.is_authenticated():
             return False
-        elif user.is_superuser and user.is_staff:
+        elif user.is_superuser or user.is_staff:
             return True
         else:
             return user.groups.filter(name='translators').exists()
