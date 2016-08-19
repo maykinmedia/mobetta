@@ -20,7 +20,7 @@ class TranslationForm(forms.Form):
         translation_format_tokens = re.findall(regex, cleaned_data['translation'])
         missing_tokens = set(original_format_tokens) ^ set(translation_format_tokens)
 
-        if missing_tokens:
+        if missing_tokens and cleaned_data['translation']:
             error = 'The following tokens should be present in both the source text and the translation : {}.'
             tokens = ', '.join([t for t in missing_tokens])
 
