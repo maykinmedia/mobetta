@@ -103,7 +103,7 @@ def update_translations(pofile, form_changes):
                         rejected_changes.append((form, change))
 
                 elif change['field'] == 'context':
-                    if entry.msgctxt == change['from']:
+                    if entry.msgctxt is None or entry.msgctxt == change['from']:
                         entry.msgctxt = change['to']
                         applied_changes.append((form, change))
                     else:

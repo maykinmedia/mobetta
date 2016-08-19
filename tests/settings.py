@@ -11,6 +11,10 @@ SITE_ID = 1
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sites',
+    'django.contrib.auth',
+    'django.contrib.sessions',
+    'django.contrib.admin',
+    'django.contrib.messages',
     'mobetta',
     'tests.app',
 ]
@@ -20,6 +24,7 @@ ROOT_URLCONF = 'tests.urls'
 DEBUG = False
 SECRET_KEY = 'this-is-really-not-a-secret'
 
+STATIC_URL = '/static/'
 
 DATABASES = {
     'default': {
@@ -32,10 +37,16 @@ DATABASES = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'APP_DIRS': False,
+        'APP_DIRS': True,
         'DIRS': [
             os.path.join(PROJECT_DIR, 'templates'),
         ],
     },
 ]
 
+
+MIDDLEWARE_CLASSES = [
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+]

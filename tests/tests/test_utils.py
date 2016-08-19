@@ -73,7 +73,11 @@ class POFileTests(TestCase):
             ]),
         ]
 
-        util.update_translations(pofile, changes)
+        applied_changes, rejected_changes = util.update_translations(pofile, changes)
+
+        self.assertEqual(len(applied_changes), 1)
+        self.assertEqual(len(rejected_changes), 0)
+
         pofile.save()
 
         # Reload the file
