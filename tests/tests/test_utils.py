@@ -1,35 +1,15 @@
 # coding=utf8
 
-import os
-import shutil
-
-from django.core.management import call_command
-from django.test import TestCase
-
-from django.conf import settings
+from .utils import POFileTestCase
 
 from mobetta.models import TranslationFile
 from mobetta import util
 
 
-class POFileTests(TestCase):
+class POFileTests(POFileTestCase):
     """
     Unit tests for PO file I/O.
     """
-
-    def setUp(self):
-        # Copy the example file into django.po
-        trans_dir = os.path.join(settings.PROJECT_DIR, 'locale', 'nl', 'LC_MESSAGES')
-        shutil.copy(os.path.join(trans_dir, 'django.po.example'), os.path.join(trans_dir, 'django.po'))
-
-        self.pofile_path = os.path.join(trans_dir, 'django.po')
-
-        TranslationFile.objects.all().delete()
-        call_command('locate_translation_files')
-
-    def tearDown(self):
-        os.remove(self.pofile_path)
-
     def test_edit_translation(self):
         self.assertEqual(TranslationFile.objects.all().count(), 1)
 

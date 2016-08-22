@@ -12,6 +12,7 @@ dist/
 .coverage
 cover
 tests/static
+*.db
 
 # docs
 docs/_build
