@@ -184,6 +184,7 @@ class FileDetailView(FormView):
                 'old_fuzzy': translation['fuzzy'],
                 'context': translation['context'],
                 'old_context': translation['context'],
+                'occurrences': translation['occurrences']
             }
             for translation in page
         ]
@@ -230,6 +231,7 @@ class FileDetailView(FormView):
                 'obsolete': entry.obsolete,
                 'fuzzy': util.message_is_fuzzy(entry),
                 'context': entry.msgctxt,
+                'occurrences': util.get_occurrences(entry)
             }
             for entry in entries
         ]
