@@ -65,6 +65,14 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         pofile = self.transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_to_edit).msgstr, new_translation)
 
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
+
+        only_file_edit = file_edits.first()
+        self.assertEqual(only_file_edit.msgid, msgid_to_edit)
+        self.assertEqual(only_file_edit.new_value, new_translation)
+
     def test_multiple_edits(self):
         """
         Go to the file detail view, make an edit to one translation, one context,
@@ -98,6 +106,10 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(pofile.find(msgid_for_context_edit).msgctxt, new_context)
         self.assertEqual(pofile.find(msgid_for_translation_edit).msgstr, new_translation)
         self.assertIn('fuzzy', pofile.find(msgid_for_fuzzy_edit).flags)
+
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 3)
 
     def test_simultaneous_edits_blocked(self):
         """
@@ -145,6 +157,10 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         pofile = self.transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_for_edit).msgstr, first_user_new_translation)
+
+        # Check the edit history: the rejected edit shouldn't be in there
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
 
     def test_get_access_if_authenticated(self):
         response = self.app.get(self.url, user=self.admin_user)

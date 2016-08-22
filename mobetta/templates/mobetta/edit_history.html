@@ -1,0 +1,36 @@
+{% extends "mobetta/base.html" %}
+{% load i18n %}
+
+{% block pagetitle %}{{ block.super }} - {% trans "File" %} - {% trans "Edit history" %}{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">{% trans "Home" %}</div>
+{% endblock breadcrumbs %}
+
+{% block content %}
+<h3>{% trans "Edit history for" %} {{ translation_file.filepath }}</h3>
+<hr/>
+<br/>
+<table cellspacing="0">
+    <thead>
+        <tr>
+            <th>{% trans "Time" %}</th>
+            <th>{% trans "Message ID" %}</th>
+            <th>{% trans "Field" %}</th>
+            <th>{% trans "Old value" %}</th>
+            <th>{% trans "New value" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for edit in edits %}
+          <tr class="{% cycle 'row1' 'row2' %}">
+            <td>{{ edit.created }}</td>
+            <td>{{ edit.msgid }}</td>
+            <td>{{ edit.fieldname }}</td>
+            <td>{{ edit.old_value }}</td>
+            <td>{{ edit.new_value }}</td>
+          </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}

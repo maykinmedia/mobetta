@@ -16,9 +16,10 @@ from django.http import HttpResponseRedirect
 
 from mobetta import util
 from mobetta import formsets
-from mobetta.models import TranslationFile
+from mobetta.models import TranslationFile, EditLog
 from mobetta.forms import TranslationForm
 from mobetta.access import can_translate
+from mobetta.conf import settings as mobetta_settings
 
 
 class LanguageListView(TemplateView):
@@ -128,6 +129,18 @@ class FileDetailView(FormView):
 
                 messages.success(self.request, _('Changed %d translations') % len(applied_changes))
 
+                # Update edit logs with the applied_changes
+                if mobetta_settings.USE_EDIT_LOGGING:
+                    for f, change in applied_changes:
+                        EditLog.objects.create(
+                            user=self.request.user,
+                            file_edited=self.file,
+                            msgid=change['msgid'],
+                            fieldname=change['field'],
+                            old_value=change['from'],
+                            new_value=change['to'],
+                        )
+
             # Add messages/errors about rejected changes
             if len(rejected_changes) > 0:
                 for f, change in rejected_changes:
@@ -222,3 +235,32 @@ class FileDetailView(FormView):
         ]
 
         return translations
+
+
+class EditHistoryView(ListView):
+
+    model = EditLog
+    context_object_name = 'edits'
+    template_name = 'mobetta/edit_history.html'
+
+    @method_decorator(never_cache)
+    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    def dispatch(self, request, file_pk, *args, **kwargs):
+        self.translation_file = get_object_or_404(
+            TranslationFile,
+            pk=file_pk
+        )
+
+        return super(EditHistoryView, self).dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return self.translation_file.edit_logs.all()
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(EditHistoryView, self).get_context_data(*args, **kwargs)
+
+        ctx.update({
+            'translation_file': self.translation_file
+        })
+
+        return ctx

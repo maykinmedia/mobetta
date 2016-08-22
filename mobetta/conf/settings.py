@@ -19,3 +19,11 @@ MOBETTA_REQUIRES_AUTH = getattr(settings, 'MOBETTA_REQUIRES_AUTH', True)
 # 'translators` group, create individual per-language groups, e.g.
 # 'translators-de', 'translators-fr', ...
 MOBETTA_LANGUAGE_GROUPS = getattr(settings, 'MOBETTA_LANGUAGE_GROUPS', False)
+
+###############################
+#                             #
+#  Settings for edit logging  #
+#                             #
+###############################
+
+USE_EDIT_LOGGING = getattr(settings, 'MOBETTA_USE_EDIT_LOGGING', True)
