@@ -19,3 +19,27 @@ class TranslationFile(models.Model):
 
     def get_polib_object(self):
         return polib.pofile(self.filepath)
+
+    def get_statistics(self):
+        """
+        Return statistics for this file:
+        - % translated
+        - total messages
+        - messages translated
+        - fuzzy messages
+        - obsolete messages
+        """
+        pofile = self.get_polib_object()
+
+        translated_entries = len(pofile.translated_entries())
+        untranslated_entries = len(pofile.untranslated_entries())
+        fuzzy_entries = len(pofile.fuzzy_entries())
+        obsolete_entries = len(pofile.obsolete_entries())
+
+        return {
+            'percent_translated': pofile.percent_translated(),
+            'total_messages': translated_entries + untranslated_entries,
+            'translated_messages': translated_entries,
+            'fuzzy_messages': fuzzy_entries,
+            'obsolete_messages': obsolete_entries,
+        }

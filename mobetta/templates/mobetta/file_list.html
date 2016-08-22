@@ -12,17 +12,29 @@
     <thead>
         <tr>
             <th>{% trans "App name" %}</th>
+            <th>{% trans "Percent translated" %}</th>
+            <th>{% trans "Total messages" %}</th>
+            <th>{% trans "Translated messages" %}</th>
+            <th>{% trans "Fuzzy messages" %}</th>
+            <th>{% trans "Obsolete messages" %}</th>
             <th>{% trans "Filename" %}</th>
             <th>{% trans "Created" %}</th>
         </tr>
     </thead>
     <tbody>
         {% for file in files %}
-        <tr class="{% cycle 'row1' 'row2' %}">
-            <td><a href="{% url 'file_detail' pk=file.pk %}">{{ file.name }}</a></td>
-            <td>{{ file.filepath }}</td>
-            <td>{{ file.created }}</td>
-        </tr>
+          {% with file.get_statistics as stats %}
+            <tr class="{% cycle 'row1' 'row2' %}" id="file_detail_{{ file.pk }}">
+                <td><a href="{% url 'file_detail' pk=file.pk %}">{{ file.name }}</a></td>
+                <td>{{ stats.percent_translated }}</td>
+                <td>{{ stats.total_messages }}</td>
+                <td>{{ stats.translated_messages }}</td>
+                <td>{{ stats.fuzzy_messages }}</td>
+                <td>{{ stats.obsolete_messages }}</td>
+                <td>{{ file.filepath }}</td>
+                <td>{{ file.created }}</td>
+            </tr>
+          {% endwith %}
         {% endfor %}
     </tbody>
 </table>

@@ -2,6 +2,7 @@
 
 import os
 import shutil
+from decimal import Decimal
 
 from django_webtest import WebTest
 
@@ -146,3 +147,40 @@ class FileDetailViewTests(WebTest):
         pofile = transfile.get_polib_object()
         self.assertEqual(pofile.find(msgid_for_edit).msgstr, first_user_new_translation)
 
+
+class FileListViewTests(WebTest):
+
+    urls = 'mobetta.urls'
+
+    def setUp(self):
+        self.admin_user = AdminFactory.create()
+
+        trans_dir = os.path.join(settings.PROJECT_DIR, 'locale', 'nl', 'LC_MESSAGES')
+        shutil.copy(os.path.join(trans_dir, 'statstest.po.example'), os.path.join(trans_dir, 'django.po'))
+
+        self.pofile_path = os.path.join(trans_dir, 'django.po')
+        call_command('locate_translation_files')
+
+    def test_file_stats(self):
+        self.assertEqual(TranslationFile.objects.all().count(), 1)
+        transfile = TranslationFile.objects.all().first()
+
+        url = reverse('file_list')
+
+        response = self.app.get(url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        soup = response.html
+        file_row = soup.find('tr', id="file_detail_{}".format(transfile.pk))
+
+        col_titles = ['appname', 'percent_translated', 'total_messages', 'translated', 'fuzzy', 'obsolete', 'filename', 'created']
+
+        stats_cells = file_row.find_all('td', recursive=False)
+        stats_results = dict(zip(col_titles, [cell.text for cell in list(stats_cells)]))
+
+        self.assertEqual(Decimal(stats_results['percent_translated']), Decimal(25.0))
+        self.assertEqual(int(stats_results['total_messages']), 4)
+        self.assertEqual(int(stats_results['translated']), 1)
+        self.assertEqual(int(stats_results['fuzzy']), 0)
+        self.assertEqual(int(stats_results['obsolete']), 0)
+        self.assertEqual(stats_results['filename'], self.pofile_path)
