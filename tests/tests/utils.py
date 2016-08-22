@@ -14,10 +14,13 @@ class POFileTestCase(TestCase):
     Base class that creates a new copy of a .po file before each test
     and destroy it after each test.
     """
+
+    test_pofile_name = 'django.po.example'
+
     def setUp(self):
         # Copy the example file into django.po
         trans_dir = os.path.join(settings.PROJECT_DIR, 'locale', 'nl', 'LC_MESSAGES')
-        shutil.copy(os.path.join(trans_dir, 'django.po.example'), os.path.join(trans_dir, 'django.po'))
+        shutil.copy(os.path.join(trans_dir, self.test_pofile_name), os.path.join(trans_dir, 'django.po'))
 
         self.pofile_path = os.path.join(trans_dir, 'django.po')
 

@@ -1,0 +1,26 @@
+{% extends "mobetta/base.html" %}
+{% load i18n %}
+
+{% block pagetitle %}{% trans "Home" %}{% endblock pagetitle %}
+
+{% block content %}
+<h3>{% trans "Languages" %}</h3>
+<hr/>
+<br/>
+<table>
+  <thead>
+    <tr>
+      <th>{% trans "Language name" %}</th>
+      <th>{% trans "Number of files" %}</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for lang_code, lang_name, file_count in languages %}
+      <tr>
+        <td><a href="{% url 'file_list' lang_code=lang_code %}">{{ lang_name }}</a></td>
+        <td>{{ file_count }}</td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock content %}

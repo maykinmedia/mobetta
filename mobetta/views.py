@@ -1,7 +1,7 @@
 import re
 
 from django.shortcuts import render
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView, ListView, TemplateView
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.forms import formset_factory
@@ -21,6 +21,28 @@ from mobetta.forms import TranslationForm
 from mobetta.access import can_translate
 
 
+class LanguageListView(TemplateView):
+
+    template_name = 'mobetta/language_list.html'
+
+    def get_languages(self):
+        language_codes = TranslationFile.objects.all().values_list('language_code', flat=True)
+        language_tuples = [
+            (code, name, TranslationFile.objects.filter(language_code=code).count())
+            for code, name in settings.LANGUAGES if code in language_codes
+        ]
+        return language_tuples
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(LanguageListView, self).get_context_data(*args, **kwargs)
+
+        ctx.update({
+            'languages': self.get_languages()
+        })
+
+        return ctx
+
+
 class FileListView(ListView):
 
     model = TranslationFile
@@ -28,11 +50,21 @@ class FileListView(ListView):
     template_name = 'mobetta/file_list.html'
 
     @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
-    def dispatch(self, *args, **kwargs):
-        return super(FileListView, self).dispatch(*args, **kwargs)
+    def dispatch(self, request, lang_code, *args, **kwargs):
+        self.language_code = lang_code
+        return super(FileListView, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return TranslationFile.objects.all()
+        return TranslationFile.objects.filter(language_code=self.language_code)
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(FileListView, self).get_context_data(*args, **kwargs)
+
+        ctx.update({
+            'language_name': dict(settings.LANGUAGES)[self.language_code]
+        })
+
+        return ctx
 
 
 class FileDetailView(FormView):
@@ -119,7 +151,7 @@ class FileDetailView(FormView):
 
                 return self.form_invalid(form)
 
-        return HttpResponseRedirect(reverse('file_list'))
+        return HttpResponseRedirect(self.get_success_url())
 
     def get_context_data(self, **kwargs):
         ctx = super(FileDetailView, self).get_context_data(**kwargs)
@@ -145,7 +177,7 @@ class FileDetailView(FormView):
 
         ctx.update({
             'page': page,
-            'file': self.file
+            'file': self.file,
         })
 
         return ctx
