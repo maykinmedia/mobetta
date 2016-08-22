@@ -298,6 +298,8 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
 class FileListViewTests(POFileTestCase, WebTest):
 
+    test_pofile_name = 'statstest.po.example'
+
     def setUp(self):
         super(FileListViewTests, self).setUp()
 
