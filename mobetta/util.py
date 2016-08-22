@@ -90,17 +90,13 @@ def update_translations(pofile, form_changes):
                         rejected_changes.append((form, change))
 
                 elif change['field'] == 'fuzzy':
-                    if ('fuzzy' in entry.flags) == change['from']:
-                        if change['to'] and 'fuzzy' not in entry.flags:
-                            entry.flags.append('fuzzy')
-                        elif not change['to'] and 'fuzzy' in entry.flags:
-                            entry.flags.remove('fuzzy')
-                        applied_changes.append((form, change))
-                    else:
-                        change.update({
-                            'po_value': 'fuzzy' in entry.flags
-                        })
-                        rejected_changes.append((form, change))
+                    # No need to check for simultaneous edits of 'fuzzy'
+                    # since there are only two possible values.
+                    if change['to'] and 'fuzzy' not in entry.flags:
+                        entry.flags.append('fuzzy')
+                    elif not change['to'] and 'fuzzy' in entry.flags:
+                        entry.flags.remove('fuzzy')
+                    applied_changes.append((form, change))
 
                 elif change['field'] == 'context':
                     if entry.msgctxt is None or entry.msgctxt == change['from']:
