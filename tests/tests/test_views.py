@@ -203,6 +203,13 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="errorlist nonfield"', count=2)
 
+        # Make sure we can still submit the correct value
+        form = response.forms['translation-edit']
+        form[prefix + '-translation'] = 'Un {important} token'
+        response = form.submit()
+
+        self.assertEqual(response.status_code, 200)
+
     def test_success_to_change_one_fuzzy_field(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.', fuzzy=False)
 
