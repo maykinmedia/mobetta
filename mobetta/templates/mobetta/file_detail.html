@@ -13,7 +13,7 @@
 
 {% block breadcrumbs %}
     <div class="breadcrumbs">
-        <a href="{% url 'file_list' %}">{% trans "Home" %}</a> &rsaquo; {% trans "Translations" %}
+        <a href="{% url 'file_list' lang_code=file.language_code %}">{% trans "Home" %}</a> &rsaquo; {% trans "Translations" %}
     </div>
 {% endblock breadcrumbs %}
 

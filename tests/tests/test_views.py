@@ -298,11 +298,13 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
 class FileListViewTests(POFileTestCase, WebTest):
 
+    test_pofile_name = 'statstest.po.example'
+
     def setUp(self):
         super(FileListViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
-        self.url = reverse('file_list')
+        self.url = reverse('file_list', kwargs={'lang_code': 'nl'})
 
     def test_file_stats(self):
 
