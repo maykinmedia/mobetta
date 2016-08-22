@@ -14,16 +14,19 @@ class TranslationForm(forms.Form):
     def clean(self):
         cleaned_data = super(TranslationForm, self).clean()
 
-        regex = r'{(?:[a-zA-z]*|[0-9]*)}'
+        regex = '|'.join([
+            r'(?:\{[^\}\n]*\})', # Python3 format tokens
+            r'(?:%\([^\)]*\))', # Python2 format tokens
+            r'(?:\{{2}[^\}\n]*\}{2})', # Django template variables
+        ])
 
-        original_format_tokens = re.findall(regex, cleaned_data['msgid'])
+        source_format_tokens = re.findall(regex, cleaned_data['msgid'])
         translation_format_tokens = re.findall(regex, cleaned_data['translation'])
-        missing_tokens = set(original_format_tokens) ^ set(translation_format_tokens)
 
-        if missing_tokens and cleaned_data['translation']:
-            error = 'The following tokens should be present in both the source text and the translation : {}.'
-            tokens = ', '.join([t for t in missing_tokens])
-
+        # Check if there is the same number of formating tokens in the source and the translation.
+        if len(source_format_tokens) != len(translation_format_tokens) and cleaned_data['translation']:
+            error = 'There should be {} formating token(s) in the source text and the translation.'
+            tokens = len(source_format_tokens)
             raise forms.ValidationError(error.format(tokens))
 
     def is_updated(self):
