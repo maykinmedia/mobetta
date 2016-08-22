@@ -2,6 +2,12 @@ import polib
 
 from django.db import models
 
+from django.conf import settings
+
+
+# UserModel represents the model used by the project
+UserModel = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
+
 
 class TranslationFile(models.Model):
 
@@ -43,3 +49,26 @@ class TranslationFile(models.Model):
             'fuzzy_messages': fuzzy_entries,
             'obsolete_messages': obsolete_entries,
         }
+
+
+class EditLog(models.Model):
+
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(UserModel)
+    file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
+    msgid = models.CharField(max_length=127, null=False)
+    fieldname = models.CharField(max_length=127, blank=False, null=False)
+    old_value = models.CharField(max_length=255, blank=True, null=True)
+    new_value = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        ordering = ['created']
+
+    def __unicode__(self):
+        return "[{}] Field {} | \"{}\" -> \"{}\" in {}".format(
+            str(self.user),
+            self.fieldname,
+            self.old_value,
+            self.new_value,
+            self.file_edited.filepath,
+        )
