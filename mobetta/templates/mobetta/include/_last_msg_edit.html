@@ -1,0 +1,8 @@
+{% load i18n %}
+<span>
+{% if logentry %}
+  {% trans "Last edited by" %} {{ logentry.user }} on {{ logentry.created }}
+{% else %}
+  {% trans "No edits found" %}
+{% endif %}
+</span>
