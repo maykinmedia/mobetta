@@ -10,7 +10,7 @@ class TranslationForm(forms.Form):
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())
     context = forms.CharField(max_length=1024, required=False)
     old_context = forms.CharField(max_length=1024, widget=forms.HiddenInput(), required=False)
-    occurrences = forms.CharField(widget=forms.Textarea(attrs={'readonly': 'readonly', 'rows':4, 'cols':15}))
+    occurrences = forms.CharField(widget=forms.Textarea(attrs={'readonly': 'readonly', 'rows':4, 'cols':15}), required=False)
 
     def clean(self):
         cleaned_data = super(TranslationForm, self).clean()
