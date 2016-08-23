@@ -29,23 +29,22 @@
             <div id="toolbar">
                 <form id="translation-search" action="" method="get">
                     <div>
-                        {% csrf_token %}
                         <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
-                        <input type="text" size="40" name="query" value="{% if query %}{{query}}{% endif %}" id="searchbar" tabindex="0" />
-                        <input type="submit" name="search" value="{% trans "Go" %}" />
+                        <input type="search" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
+                        <input type="submit" value="{% trans "Go" %}" />
 
                         <ul class="changelist-filters">
                             <li>
-                                <a href="{% url 'file_detail' pk=file.pk %}">All</a>
+                                <a href="{% url 'file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
                             </li>
                             <li>
-                                <a href="{% url 'file_detail' pk=file.pk %}?type=fuzzy">Fuzzy</a>
+                                <a href="{% url 'file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Fuzzy</a>
                             </li>
                             <li>
-                                <a href="{% url 'file_detail' pk=file.pk %}?type=translated">Translated</a>
+                                <a href="{% url 'file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Translated</a>
                             </li>
                             <li>
-                                <a href="{% url 'file_detail' pk=file.pk %}?type=untranslated">Untranslated</a>
+                                <a href="{% url 'file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Untranslated</a>
                             </li>
                         </ul>
                     </div>
@@ -114,7 +113,7 @@
                                 {% if i == page.number %}
                                     <span class="this-page">{{i}}</span>
                                 {% else %}
-                                    <a href="?page={{i}}{% if query %}&amp;query={{query}}{% endif %}">{{i}}</a>
+                                    <a href="?page={{i}}{% if page_query_params %}&{{ page_query_params }}{% endif %}">{{i}}</a>
                                 {% endif %}
                             {% endfor %}
                         {% else %}

@@ -207,9 +207,28 @@ class FileDetailView(FormView):
             for translation in page
         ]
 
+        # Keep track of the query parameters for the url of the pages.
+        page_query_params = self.request.GET.copy()
+        if 'page' in page_query_params:
+            page_query_params.pop('page')
+
+        # Keep track of the query parameters for the url of the filters.
+        filter_query_params = page_query_params.copy()
+        if 'type' in filter_query_params:
+            filter_query_params.pop('type')
+
+        # Keep track of the search tags
+        search_tags = ''
+        query_params = self.request.GET.copy()
+        if 'search_tags' in query_params:
+            search_tags = ' '.join(query_params.copy().pop('search_tags'))
+
         ctx.update({
             'page': page,
             'file': self.file,
+            'search_tags': search_tags,
+            'page_query_params': page_query_params.urlencode(),
+            'filter_query_params': filter_query_params.urlencode(),
         })
 
         return ctx
@@ -221,7 +240,7 @@ class FileDetailView(FormView):
         if type_filter:
             entries = self.filter_by_type(entries, type_filter)
 
-        search_filter = self.request.GET.get('query')
+        search_filter = self.request.GET.get('search_tags')
         if search_filter:
             entries = self.filter_by_search_tag(entries, search_filter)
 
