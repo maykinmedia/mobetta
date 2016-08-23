@@ -62,6 +62,7 @@
                             <th>{% trans "Context" %}</th>
                             <th>{% trans "Translation" %}</th>
                             <th>{% trans "Fuzzy" %}</th>
+                            <th>{% trans "Occurrences" %}</th>
                         </tr>
                     </thead>
 
@@ -81,6 +82,9 @@
                                 <td>
                                   {{ form.fuzzy }}
                                   {{ form.fuzzy.errors }}
+                                </td>
+                                <td>
+                                  {{ form.occurrences }}
                                 </td>
                             </tr>
                             {{ form.old_translation }}

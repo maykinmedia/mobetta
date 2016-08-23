@@ -19,6 +19,16 @@ def message_is_fuzzy(message):
     return message and hasattr(message, 'flags') and 'fuzzy' in message.flags
 
 
+def get_occurrences(poentry):
+    subset = [source + ':' + line for source, line in poentry.occurrences[:2]]
+
+    size = len(poentry.occurrences)
+    if  size > 2:
+        subset.append('... and {} more !'.format(size - 2))
+
+    return '\n'.join(subset)
+
+
 def app_name_from_filepath(path):
     app = path.split("/locale")[0].split("/")[-1]
 
