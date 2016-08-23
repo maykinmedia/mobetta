@@ -20,10 +20,15 @@ MOBETTA_REQUIRES_AUTH = getattr(settings, 'MOBETTA_REQUIRES_AUTH', True)
 # 'translators-de', 'translators-fr', ...
 MOBETTA_LANGUAGE_GROUPS = getattr(settings, 'MOBETTA_LANGUAGE_GROUPS', False)
 
-###############################
-#                             #
-#  Settings for edit logging  #
-#                             #
-###############################
+##################################
+#                                #
+# Settings for optional features #
+#                                #
+##################################
 
 USE_EDIT_LOGGING = getattr(settings, 'MOBETTA_USE_EDIT_LOGGING', True)
+
+# Whether to use Microsoft Translate to offer suggestions. This requires
+# installing `microsofttranslate` from PyPI, and also uses the settings
+# `MS_TRANSLATE_CLIENT_ID` and `MS_TRANSLATE_CLIENT_SECRET`
+USE_MS_TRANSLATE = getattr(settings, 'MOBETTA_USE_MS_TRANSLATE', False)

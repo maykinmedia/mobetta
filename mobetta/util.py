@@ -247,3 +247,16 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
 
     return list(sorted(abspaths))
 
+
+def get_translator():
+    import microsofttranslator
+    return microsofttranslator.Translator(settings.MS_TRANSLATE_CLIENT_ID, settings.MS_TRANSLATE_CLIENT_SECRET)
+
+
+def get_automated_translation(translator, original_string, language_code):
+    return translator.translate(original_string, language_code)
+
+
+def get_automated_translations(translator, strings_to_translate, language_code):
+    result = translator.translate_array(strings_to_translate, language_code)
+    return dict(zip(strings_to_translate, [ t['TranslatedText'] for t in result ]))

@@ -64,6 +64,9 @@
                             <th>{% trans "Fuzzy" %}</th>
                             <th>{% trans "Occurrences" %}</th>
                             <th>{% trans "Last edited" %}</th>
+                            {% if suggestions %}
+                              <th>{% trans "Suggestion" %}</th>
+                            {% endif %}
                         </tr>
                     </thead>
 
@@ -93,6 +96,11 @@
                                 <td>
                                   {% last_edit file form.msgid.value %}
                                 </td>
+                                {% if suggestions %}
+                                  <td>
+                                    {{ suggestions|get_item:form.msgid.value }}
+                                  </td>
+                                {% endif %}
                             </tr>
                             {{ form.old_translation }}
                             {{ form.old_fuzzy }}

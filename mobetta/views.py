@@ -207,6 +207,14 @@ class FileDetailView(FormView):
             for translation in page
         ]
 
+        if mobetta_settings.USE_MS_TRANSLATE:
+            translator = util.get_translator()
+            ctx['suggestions'] = util.get_automated_translations(
+                translator,
+                [ t['original'] for t in page ],
+                self.file.language_code
+            )
+
         # Keep track of the query parameters for the url of the pages.
         page_query_params = self.request.GET.copy()
         if 'page' in page_query_params:
