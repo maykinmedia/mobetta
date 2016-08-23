@@ -103,6 +103,37 @@ class FileDetailView(FormView):
         return getattr(pofile, filters[type])() if type in filters else pofile
 
     def form_invalid(self, form):
+        # Populate the old_<fieldname> values with the file's current translation/context
+        pofile = self.file.get_polib_object()
+
+        form_msgids = [
+            f.cleaned_data['msgid']
+            for f in form
+        ]
+
+        file_translations = {
+            poentry.msgid: {
+                'translation': poentry.msgstr,
+                'context': poentry.msgctxt,
+            }
+
+            for poentry in [
+                e for e in pofile if e.msgid in form_msgids
+            ]
+        }
+
+        for f in form:
+            form_data = f.cleaned_data
+            form_data.update({
+                'old_translation': file_translations[form_data['msgid']]['translation'],
+                'old_context': file_translations[form_data['msgid']]['context'],
+            })
+            new_form_data = {
+                '{}-{}'.format(f.prefix, k) : form_data[k]
+                for k in form_data.keys()
+            }
+            f.data = new_form_data
+
         return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
@@ -144,19 +175,6 @@ class FileDetailView(FormView):
             # Add messages/errors about rejected changes
             if len(rejected_changes) > 0:
                 for f, change in rejected_changes:
-                    # We need to update the old_<fieldname> value on the forms
-                    # before we give them back to the user, to update them
-                    # to the new values in the PO file.
-                    form_data = f.cleaned_data
-                    form_data.update({
-                        'old_{}'.format(change['field']): change['po_value']
-                    })
-                    new_form_data = {
-                        '{}-{}'.format(f.prefix, k) : form_data[k]
-                        for k in form_data.keys()
-                    }
-                    f.data = new_form_data
-
                     # Add an error message to the field as well as a message
                     # in the top of the view.
                     f.add_error(change['field'], _("This value was edited while you were editing it (new value: %s)") % (change['po_value']))
