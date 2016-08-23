@@ -25,3 +25,11 @@ def last_edit(transfile, msgid):
         'logentry': logentry
     }
 
+
+@register.filter
+def get_item(dictionary, key):
+    """
+    Return the value at dictionary[key].
+    For some reason this isn't allowed directly in Django templates.
+    """
+    return dictionary.get(key)
