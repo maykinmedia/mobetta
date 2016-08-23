@@ -1,6 +1,7 @@
 {% extends "mobetta/base.html" %}
 {% load static %}
 {% load i18n %}
+{% load message_tags %}
 
 {% block extrastyle %}
     <link rel="stylesheet" href="{% static 'css/file_detail.css' %}" type="text/css"/>
@@ -63,6 +64,7 @@
                             <th>{% trans "Translation" %}</th>
                             <th>{% trans "Fuzzy" %}</th>
                             <th>{% trans "Occurrences" %}</th>
+                            <th>{% trans "Last edited" %}</th>
                         </tr>
                     </thead>
 
@@ -88,6 +90,9 @@
                                 </td>
                                 <td>
                                   {{ form.occurrences.value }}
+                                </td>
+                                <td>
+                                  {% last_edit file form.msgid.value %}
                                 </td>
                             </tr>
                             {{ form.old_translation }}
