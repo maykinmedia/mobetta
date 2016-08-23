@@ -185,6 +185,52 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'class="errorlist nonfield"', count=1)
 
+    def test_token_error_with_simultaneous_edit(self):
+        """
+        This issue is outlined in issue #28. Follow this sequence of events:
+
+        - User1 loads the FileListView
+        - User2 loads the FileListView
+        - User1 edits a translation with a token (the translation still contains
+            the token, and is valid).
+        - User2 edits the same translation without reloading. User2 forgets to
+            add the token to the translation.
+        - User2 gets the 'token not found' error, and amends their translation
+            to include the token.
+        - At this point, the system used to give a 'multiple edits' error, since the
+            old_translation value hadn't been updated after the first error. Now
+            the translation should be changed successfully.
+        """
+        self.create_poentry(u'An {important} token', u'')
+
+        user1 = AdminFactory.create()
+        user2 = AdminFactory.create()
+
+        response_user1 = self.app.get(self.url, user=user1)
+        response_user2 = self.app.get(self.url, user=user2)
+
+        form_user1 = response_user1.forms['translation-edit']
+        prefix = get_field_prefix(form_user1, 'msgid', 'An {important} token')
+        form_user1[prefix + '-translation'] = u'Un {important} token'
+        response_user1 = form_user1.submit().follow()
+        self.assertEqual(response_user1.status_code, 200)
+
+        form_user2 = response_user2.forms['translation-edit']
+        prefix = get_field_prefix(form_user2, 'msgid', 'An {important} token')
+        form_user2[prefix + '-translation'] = u'Un token'
+        response_user2 = form_user2.submit()
+        self.assertEqual(response_user2.status_code, 200)
+        self.assertIn(
+            'There should be 1 formating token(s) in the source text and the translation.',
+            response_user2.text,
+        )
+
+        # Now change the translation to include the token
+        form_user2 = response_user2.forms['translation-edit']
+        form_user2[prefix + '-translation'] = u'Un tres {important} token'
+        response_user2 = form_user2.submit().follow()
+        self.assertEqual(response_user2.status_code, 200)
+
     def test_display_translations_errors(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.')
         self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
