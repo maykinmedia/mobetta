@@ -1,6 +1,8 @@
-from factory.django import DjangoModelFactory
-
 from django.contrib.auth.models import User
+
+from mobetta.models import EditLog, TranslationFile
+
+from factory import DjangoModelFactory, SubFactory
 
 
 class UserFactory(DjangoModelFactory):
@@ -18,3 +20,24 @@ class AdminFactory(UserFactory):
 
     username = 'admin'
     is_superuser = True
+
+
+class TranslationFileFactory(DjangoModelFactory):
+    name = 'django.po'
+    filepath = 'you/shall/not/path'
+    language_code = 'nl'
+
+    class Meta:
+        model = TranslationFile
+
+
+class EditLogFactory(DjangoModelFactory):
+    user = SubFactory(AdminFactory)
+    file_edited = SubFactory(TranslationFileFactory)
+    msgid = 'default_msgid'
+    fieldname = 'default_fieldname'
+    old_value = 'default_old_value'
+    new_value = 'default_new_value'
+
+    class Meta:
+        model = EditLog

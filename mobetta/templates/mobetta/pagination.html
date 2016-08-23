@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load apply from pagination_tags %}
+
+{% apply paginator 'limited_range' page_obj.number as limited_range %}
+
+<div class="pagination">
+
+    {% if paginator.num_pages <= 1 %}
+
+        {% trans "Displaying:" %}
+
+    {% else %}
+
+        {% if page_obj.has_previous %}
+            <span class="pagination__previous" >
+                <a class="pagination__previous__link" href="?page={{ page_obj.previous_page_number }}">Previous <</a>
+            </span>
+        {% endif %}
+
+        {% for i in limited_range %}
+
+            {% if i == page_obj.number %}
+                <span class="pagination__current_page">{{i}}</span>
+            {% else %}
+                <span class="pagination__page">
+                    <a href="?page={{i}}{% if pagination_query_params %}&{{ pagination_query_params }}{% endif %}">{{i}}</a>
+                </span>
+            {% endif %}
+
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+            <span class="pagination__next" >
+                <a class="pagination__next__link" href="?page={{ page_obj.next_page_number }}">> Next</a>
+            </span>
+        {% endif %}
+
+
+    {% endif %}
+
+</div>

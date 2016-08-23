@@ -1,15 +1,15 @@
 # coding=utf8
-
-import os
-import shutil
+from datetime import datetime
 from decimal import Decimal
+import os, shutil
 
+from django.conf import settings
 from django.core.management import call_command
 from django.core.urlresolvers import reverse
+from django.http import HttpRequest
 from django.utils.translation import ugettext as _
-from django.conf import settings
 
-from .factories import AdminFactory
+from .factories import AdminFactory, EditLogFactory, UserFactory
 from .utils import POFileTestCase
 
 from mobetta.models import TranslationFile
@@ -388,3 +388,259 @@ class FileListViewTests(POFileTestCase, WebTest):
         self.assertEqual(int(stats_results['obsolete']), 0)
         self.assertEqual(stats_results['filename'], self.pofile_path)
 
+
+
+def get_column(response, column_name):
+    """
+    Return a list of BeautifulSoup <td> Tag for a given column name.
+    """
+    #Tricky way of getting the number of the expected column in the table.
+    col_number = next(
+        (i for i, tag in enumerate(response.html.thead.tr.find_all('th')) if column_name in str(tag)),
+        None
+    )
+
+    lines = response.html.tbody.find_all('tr')
+
+    return [ line.find_all('td')[col_number] for line in lines]
+
+
+class EditHistoryViewTests(POFileTestCase, WebTest):
+
+    def setUp(self):
+        super(EditHistoryViewTests, self).setUp()
+
+        self.admin_user = AdminFactory.create()
+        self.url = reverse('edit_history', args=(self.transfile.pk,))
+
+    def test_get_access_if_authenticated(self):
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_redirect_to_login_page_if_not_authenticated(self):
+        response = self.app.get(self.url)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('login/?next=' + self.url, response['Location'])
+
+    def test_can_order_by_time_asc(self):
+        logs = EditLogFactory.create_batch(3, file_edited=self.transfile)
+
+        logs[0].created, logs[1].created, logs[2].created  = (
+            datetime(2016, 8, 1), datetime(2016, 8, 2), datetime(2016, 8, 3)
+        )
+
+        logs[0].save()
+        logs[1].save()
+        logs[2].save()
+        response = self.app.get(
+            self.url + '?order_by=time',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'time')
+
+        self.assertIn('Aug. 1, 2016', values[0].contents[0])
+        self.assertIn('Aug. 2, 2016', values[1].contents[0])
+        self.assertIn('Aug. 3, 2016', values[2].contents[0])
+
+    def test_can_order_by_time_desc(self):
+        logs = EditLogFactory.create_batch(3, file_edited=self.transfile)
+
+        logs[0].created, logs[1].created, logs[2].created  = (
+            datetime(2016, 8, 1), datetime(2016, 8, 2), datetime(2016, 8, 3)
+        )
+
+        logs[0].save()
+        logs[1].save()
+        logs[2].save()
+        response = self.app.get(
+            self.url + '?order_by=-time',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'time')
+
+        self.assertIn('Aug. 3, 2016', values[0].contents[0])
+        self.assertIn('Aug. 2, 2016', values[1].contents[0])
+        self.assertIn('Aug. 1, 2016', values[2].contents[0])
+
+    def test_can_order_by_user_asc(self):
+        user1 = UserFactory.create(username='Adam')
+        user2 = UserFactory.create(username='Barney')
+        user3 = UserFactory.create(username='Cersei')
+
+        EditLogFactory.create(user=user1, file_edited=self.transfile)
+        EditLogFactory.create(user=user2, file_edited=self.transfile)
+        EditLogFactory.create(user=user3, file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=user',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'user')
+
+        self.assertIn('Adam', values[0].contents[0])
+        self.assertIn('Barney', values[1].contents[0])
+        self.assertIn('Cersei', values[2].contents[0])
+
+
+    def test_can_order_by_user_desc(self):
+        user1 = UserFactory.create(username='Adam')
+        user2 = UserFactory.create(username='Barney')
+        user3 = UserFactory.create(username='Cersei')
+
+        EditLogFactory.create(user=user1, file_edited=self.transfile)
+        EditLogFactory.create(user=user2, file_edited=self.transfile)
+        EditLogFactory.create(user=user3, file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=-user',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'user')
+
+        self.assertIn('Cersei', values[0].contents[0])
+        self.assertIn('Barney', values[1].contents[0])
+        self.assertIn('Adam', values[2].contents[0])
+
+    def test_can_order_by_msgid_asc(self):
+        EditLogFactory.create(msgid='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Boring', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=msgid',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'msgid')
+
+        self.assertIn('Awesome', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Crazy', values[2].contents[0])
+
+    def test_can_order_by_msgid_desc(self):
+        EditLogFactory.create(msgid='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Boring', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=-msgid',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'msgid')
+
+        self.assertIn('Crazy', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Awesome', values[2].contents[0])
+
+    def test_can_order_by_field_name_asc(self):
+        EditLogFactory.create(fieldname='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(fieldname='Boring', file_edited=self.transfile)
+        EditLogFactory.create(fieldname='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=fieldname',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'fieldname')
+
+        self.assertIn('Awesome', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Crazy', values[2].contents[0])
+
+    def test_can_order_by_field_name_desc(self):
+        EditLogFactory.create(fieldname='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(fieldname='Boring', file_edited=self.transfile)
+        EditLogFactory.create(fieldname='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=-fieldname',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'fieldname')
+
+        self.assertIn('Crazy', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Awesome', values[2].contents[0])
+
+    def test_can_order_by_old_value_asc(self):
+        EditLogFactory.create(old_value='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(old_value='Boring', file_edited=self.transfile)
+        EditLogFactory.create(old_value='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=old_value',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'old_value')
+
+        self.assertIn('Awesome', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Crazy', values[2].contents[0])
+
+    def test_can_order_by_old_value_desc(self):
+        EditLogFactory.create(old_value='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(old_value='Boring', file_edited=self.transfile)
+        EditLogFactory.create(old_value='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=-old_value',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'old_value')
+
+        self.assertIn('Crazy', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Awesome', values[2].contents[0])
+
+    def test_can_order_by_new_value_asc(self):
+        EditLogFactory.create(new_value='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(new_value='Boring', file_edited=self.transfile)
+        EditLogFactory.create(new_value='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=new_value',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'new_value')
+
+        self.assertIn('Awesome', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Crazy', values[2].contents[0])
+
+    def test_can_order_by_new_value_desc(self):
+        EditLogFactory.create(new_value='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(new_value='Boring', file_edited=self.transfile)
+        EditLogFactory.create(new_value='Crazy', file_edited=self.transfile)
+
+        response = self.app.get(
+            self.url + '?order_by=-new_value',
+            user=self.admin_user
+        )
+        self.assertEqual(response.status_code, 200)
+
+        values = get_column(response, 'new_value')
+
+        self.assertIn('Crazy', values[0].contents[0])
+        self.assertIn('Boring', values[1].contents[0])
+        self.assertIn('Awesome', values[2].contents[0])
