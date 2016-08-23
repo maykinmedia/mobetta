@@ -2,6 +2,9 @@ import re
 
 from django import forms
 
+from mobetta.util import get_token_regexes
+
+
 class TranslationForm(forms.Form):
     msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
     translation = forms.CharField(widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False)
@@ -15,11 +18,7 @@ class TranslationForm(forms.Form):
     def clean(self):
         cleaned_data = super(TranslationForm, self).clean()
 
-        regex = '|'.join([
-            r'(?:\{[^\}\n]*\})', # Python3 format tokens
-            r'(?:%\([^\)]*\))', # Python2 format tokens
-            r'(?:\{{2}[^\}\n]*\}{2})', # Django template variables
-        ])
+        regex = '|'.join(get_token_regexes())
 
         source_format_tokens = re.findall(regex, cleaned_data['msgid'])
         translation_format_tokens = re.findall(regex, cleaned_data['translation'])

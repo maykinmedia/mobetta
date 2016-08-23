@@ -1,6 +1,9 @@
+import re
+
 from django import template
 
 from mobetta.models import EditLog
+from mobetta.util import get_token_regexes
 
 register = template.Library()
 
@@ -33,3 +36,22 @@ def get_item(dictionary, key):
     For some reason this isn't allowed directly in Django templates.
     """
     return dictionary.get(key)
+
+
+@register.filter
+def highlight_tokens(text):
+    """
+    Return an HTML string with tokens highlighted in a span using the
+    'token' class.
+    """
+    regex = '|'.join(get_token_regexes())
+
+    format_tokens = re.findall(regex, text)
+
+    for t in format_tokens:
+        text = text.replace(
+            t,
+            "<span class=\"format-token\">{}</span>".format(t)
+        )
+
+    return text
