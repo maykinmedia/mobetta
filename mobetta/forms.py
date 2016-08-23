@@ -3,8 +3,8 @@ import re
 from django import forms
 
 class TranslationForm(forms.Form):
-    msgid = forms.CharField(max_length=1024, widget=forms.TextInput(attrs={'readonly': 'readonly', 'size': '80'}))
-    translation = forms.CharField(widget=forms.Textarea(attrs={'size': '80'}), required=False)
+    msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
+    translation = forms.CharField(widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False)
     old_translation = forms.CharField(widget=forms.HiddenInput(), required=False)
     fuzzy = forms.BooleanField(required=False)
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())

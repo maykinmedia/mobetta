@@ -69,7 +69,10 @@
                     <tbody>
                         {% for form in formset %}
                             <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
-                                <td>{{ form.msgid }}</td>
+                                <td>
+                                  {{ form.msgid }}
+                                  {{ form.msgid.value }}
+                                </td>
                                 <td>
                                   {{ form.context }}
                                   {{ form.context.errors }}
@@ -84,7 +87,7 @@
                                   {{ form.fuzzy.errors }}
                                 </td>
                                 <td>
-                                  {{ form.occurrences }}
+                                  {{ form.occurrences.value }}
                                 </td>
                             </tr>
                             {{ form.old_translation }}
