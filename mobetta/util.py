@@ -3,7 +3,6 @@ import django
 import inspect
 import unicodedata
 import datetime
-import microsofttranslator
 
 from django.conf import settings
 from django.utils import timezone
@@ -250,6 +249,7 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
 
 
 def get_translator():
+    import microsofttranslator
     return microsofttranslator.Translator(settings.MS_TRANSLATE_CLIENT_ID, settings.MS_TRANSLATE_CLIENT_SECRET)
 
 
