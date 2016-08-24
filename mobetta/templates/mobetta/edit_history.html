@@ -14,17 +14,43 @@
 <table cellspacing="0">
     <thead>
         <tr>
-            <th>{% trans "Time" %}</th>
-            <th>{% trans "Message ID" %}</th>
-            <th>{% trans "Field" %}</th>
-            <th>{% trans "Old value" %}</th>
-            <th>{% trans "New value" %}</th>
+            <th>
+                {% trans "Time" %}
+                <a href="?order_by=-time">&#9660;</a>
+                <a href="?order_by=time">&#9650;</a>
+            </th>
+            <th>
+                {% trans "Updated by" %}
+                <a href="?order_by=-user">&#9660;</a>
+                <a href="?order_by=user">&#9650;</a>
+            </th>
+            <th>
+                {% trans "Message ID" %}
+                <a href="?order_by=-msgid">&#9660;</a>
+                <a href="?order_by=msgid">&#9650;</a>
+            </th>
+            <th>
+                {% trans "Field" %}
+                <a href="?order_by=-fieldname">&#9660;</a>
+                <a href="?order_by=fieldname">&#9650;</a>
+            </th>
+            <th>
+                {% trans "Old value" %}
+                <a href="?order_by=-old_value">&#9660;</a>
+                <a href="?order_by=old_value">&#9650;</a>
+            </th>
+            <th>
+                {% trans "New value" %}
+                <a href="?order_by=-new_value">&#9660;</a>
+                <a href="?order_by=new_value">&#9650;</a>
+            </th>
         </tr>
     </thead>
     <tbody>
         {% for edit in edits %}
           <tr class="{% cycle 'row1' 'row2' %}">
             <td>{{ edit.created }}</td>
+            <td>{{ edit.user }}</td>
             <td>{{ edit.msgid }}</td>
             <td>{{ edit.fieldname }}</td>
             <td>{{ edit.old_value }}</td>
@@ -33,4 +59,7 @@
         {% endfor %}
     </tbody>
 </table>
+
+{% include 'mobetta/pagination.html' %}
+
 {% endblock content %}

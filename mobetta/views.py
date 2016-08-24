@@ -14,13 +14,13 @@ from django.contrib.auth.decorators import user_passes_test
 from django.conf import settings
 from django.http import HttpResponseRedirect
 
+from .access import can_translate
+from .conf import settings as mobetta_settings
+from .forms import TranslationForm
+from .formsets import TranslationFormSet
+from .models import TranslationFile, EditLog
+from .paginators import MovingRangePaginator
 from mobetta import util
-from mobetta import formsets
-from mobetta.models import TranslationFile, EditLog
-from mobetta.forms import TranslationForm
-from mobetta.access import can_translate
-from mobetta.conf import settings as mobetta_settings
-
 
 class LanguageListView(TemplateView):
 
@@ -72,7 +72,7 @@ class FileDetailView(FormView):
     template_name = 'mobetta/file_detail.html'
     form_class = formset_factory(
         TranslationForm,
-        formset=formsets.TranslationFormSet,
+        formset=TranslationFormSet,
         extra=0,
     )
     translations_per_page = 20
@@ -289,6 +289,8 @@ class EditHistoryView(ListView):
     model = EditLog
     context_object_name = 'edits'
     template_name = 'mobetta/edit_history.html'
+    paginator_class = MovingRangePaginator
+    paginate_by = 20
 
     @method_decorator(never_cache)
     @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
@@ -301,13 +303,40 @@ class EditHistoryView(ListView):
         return super(EditHistoryView, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return self.translation_file.edit_logs.all()
+        logs = self.translation_file.edit_logs.all()
+
+        order_fields = {
+            'time': 'created',
+            'user': 'user',
+            'msgid': 'msgid',
+            'fieldname': 'fieldname',
+            'old_value': 'old_value',
+            'new_value': 'new_value',
+        }
+
+        field = self.request.GET.get('order_by')
+
+        if field is None:
+            return logs.all()
+
+        __ , order, field = field.rpartition('-')
+
+        if field in order_fields:
+            return logs.order_by(order + order_fields[field])
+
+        return logs.all()
 
     def get_context_data(self, *args, **kwargs):
         ctx = super(EditHistoryView, self).get_context_data(*args, **kwargs)
 
+        # Keep track of the query parameters for the url of the pages.
+        pagination_query_params = self.request.GET.copy()
+        if 'page' in pagination_query_params:
+            pagination_query_params.pop('page')
+
         ctx.update({
-            'translation_file': self.translation_file
+            'translation_file': self.translation_file,
+            'pagination_query_params': pagination_query_params.urlencode(),
         })
 
         return ctx
