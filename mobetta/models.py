@@ -65,10 +65,30 @@ class EditLog(models.Model):
         ordering = ['created']
 
     def __unicode__(self):
-        return "[{}] Field {} | \"{}\" -> \"{}\" in {}".format(
+        return u"[{}] Field {} | \"{}\" -> \"{}\" in {}".format(
             str(self.user),
             self.fieldname,
             self.old_value,
             self.new_value,
             self.file_edited.filepath,
+        )
+
+
+class MessageComment(models.Model):
+
+    created = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(UserModel)
+    translation_file = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='comments')
+    msgid = models.CharField(max_length=127, null=False)
+    body = models.CharField(max_length=1024, blank=False, null=False)
+
+    class Meta:
+        ordering = ['created']
+
+    def __unicode__(self):
+        return u"Comment by {} on \"{}\" ({}) at {}".format(
+            str(self.user),
+            self.msgid,
+            self.translation_file.language_code,
+            self.created.strftime('%d-%m-%Y')
         )

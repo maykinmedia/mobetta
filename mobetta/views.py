@@ -6,21 +6,19 @@ from django.contrib.auth.decorators import user_passes_test
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.forms import formset_factory
-from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
 from django.views.generic import FormView, ListView, TemplateView
 
-
-from .access import can_translate
-from .conf import settings as mobetta_settings
-from .forms import TranslationForm
-from .formsets import TranslationFormSet
-from .models import TranslationFile, EditLog
-from .paginators import MovingRangePaginator
 from mobetta import util
+from mobetta import formsets
+from mobetta.models import TranslationFile, EditLog, MessageComment
+from mobetta.forms import TranslationForm, CommentForm
+from mobetta.access import can_translate
+from mobetta.conf import settings as mobetta_settings
 
 
 class LanguageListView(TemplateView):
@@ -88,7 +86,7 @@ class FileDetailView(FormView):
     template_name = 'mobetta/file_detail.html'
     form_class = formset_factory(
         TranslationForm,
-        formset=TranslationFormSet,
+        formset=formsets.TranslationFormSet,
         extra=0,
     )
     paginator_class = MovingRangePaginator

@@ -2,7 +2,7 @@ import re
 
 from django import template
 
-from mobetta.models import EditLog
+from mobetta.models import EditLog, MessageComment
 from mobetta.util import get_token_regexes
 
 register = template.Library()
@@ -27,6 +27,14 @@ def last_edit(transfile, msgid):
     return {
         'logentry': logentry
     }
+
+
+@register.simple_tag
+def comment_count(transfile, msgid):
+    return MessageComment.objects.filter(
+        translation_file=transfile,
+        msgid=msgid
+    ).count()
 
 
 @register.filter

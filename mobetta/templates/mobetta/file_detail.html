@@ -8,13 +8,18 @@
     {{ block.super }}
 {% endblock %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/file_detail.js' %}"></script>
+{% endblock extrahead %}
+
 {% block pagetitle %}
-    {{ block.super }} - {% trans "Translations" %}
+    {{ block.super }} - {% trans 'Translations' %}
 {% endblock %}
 
 {% block breadcrumbs %}
     <div class="breadcrumbs">
-        <a href="{% url 'file_list' lang_code=file.language_code %}">{% trans "Home" %}</a> &rsaquo; {% trans "Translations" %}
+        <a href="{% url 'file_list' lang_code=file.language_code %}">{% trans 'Home' %}</a> &rsaquo; {% trans 'Translations' %}
     </div>
 {% endblock breadcrumbs %}
 
@@ -24,14 +29,14 @@
 
         <div class="module">
 
-            <h2>{% trans "Translations" %}</h2>
+            <h2>{% trans 'Translations' %}</h2>
 
             <div id="toolbar">
                 <form id="translation-search" action="" method="get">
                     <div>
-                        <label for="searchbar"><img src="{% static "admin/img/icon_searchbox.png" %}" alt="{% trans "Search" %}" /></label>
+                        <label for="searchbar"><img src="{% static 'admin/img/icon_searchbox.png' %}" alt="{% trans 'Search' %}" /></label>
                         <input type="search" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
-                        <input type="submit" value="{% trans "Go" %}" />
+                        <input type="submit" value="{% trans 'Go' %}" />
 
                         <ul class="changelist-filters">
                             <li>
@@ -67,6 +72,7 @@
                             {% if suggestions %}
                               <th>{% trans "Suggestion" %}</th>
                             {% endif %}
+                            <th>{% trans "Add comment" %}</th>
                         </tr>
                     </thead>
 
@@ -101,6 +107,20 @@
                                     {{ suggestions|get_item:form.msgid.value }}
                                   </td>
                                 {% endif %}
+                                <td>
+                                  <span class="comment-count" id="{{ form.prefix }}-comment-count">{% comment_count file form.msgid.value %}</span> comments
+                                  <button type="button" class="add-comment" data-formid="{{ form.prefix }}-comment-form">
+                                    {% trans "Comment" %}
+                                  </button>
+                                  <form class="comment-form" id="{{ form.prefix }}-comment-form" style="display:none" data-submiturl="{% url 'ajax_add_comment' %}">
+                                      {% csrf_token %}
+                                      <input type="hidden" name="translation_file" value="{{ file.pk }}" />
+                                      <input type="hidden" name="msgid" value="{{ form.msgid.value }}" />
+                                      <textarea name="body"></textarea>
+                                      <span class="errorlist" ></span>
+                                      <button>Submit</button>
+                                  </form>
+                                </td>
                             </tr>
                             {{ form.old_translation }}
                             {{ form.old_fuzzy }}
