@@ -8,6 +8,13 @@ from django.conf import settings
 from django.utils import timezone
 
 
+def get_token_regexes():
+    return [
+        r'(?:\{[^\}\n]*\})', # Python3 format tokens
+        r'(?:%\([^\)]*\))', # Python2 format tokens
+        r'(?:\{{2}[^\}\n]*\}{2})', # Django template variables
+    ]
+
 def get_version():
     """
     TODO: Probably use a config file for this.

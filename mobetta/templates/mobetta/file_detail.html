@@ -5,8 +5,8 @@
 
 {% block extrastyle %}
     <link rel="stylesheet" href="{% static 'css/file_detail.css' %}" type="text/css"/>
+    {{ block.super }}
 {% endblock %}
-
 
 {% block pagetitle %}
     {{ block.super }} - {% trans "Translations" %}
@@ -75,7 +75,7 @@
                             <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
                                 <td>
                                   {{ form.msgid }}
-                                  {{ form.msgid.value }}
+                                  {{ form.msgid.value|highlight_tokens|safe }}
                                 </td>
                                 <td>
                                   {{ form.context }}
