@@ -1,18 +1,18 @@
 import re
 
-from django.shortcuts import render
-from django.views.generic import FormView, ListView, TemplateView
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.forms import formset_factory
-from django.contrib import messages
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext as _
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import user_passes_test
-from django.conf import settings
-from django.http import HttpResponseRedirect
+from django.views.generic import FormView, ListView, TemplateView
+
 
 from .access import can_translate
 from .conf import settings as mobetta_settings
@@ -21,6 +21,7 @@ from .formsets import TranslationFormSet
 from .models import TranslationFile, EditLog
 from .paginators import MovingRangePaginator
 from mobetta import util
+
 
 class LanguageListView(TemplateView):
 
@@ -42,6 +43,21 @@ class LanguageListView(TemplateView):
         })
 
         return ctx
+
+
+def download_po_file(request, file_pk):
+    translation_file = get_object_or_404(TranslationFile, pk=int(file_pk))
+
+    with open(translation_file.filepath, 'r') as f:
+        content = f.read()
+
+    response = HttpResponse(content, content_type='text/plain')
+    response['Content-Disposition'] = 'attachment; filename="{}_{}.po"'.format(
+        translation_file.name,
+        translation_file.language_code
+    )
+
+    return response
 
 
 class FileListView(ListView):
