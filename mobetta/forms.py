@@ -3,7 +3,7 @@ import re
 from django import forms
 
 from mobetta.util import get_token_regexes
-from mobetta.models import MessageComment, UserModel
+from mobetta.models import TranslationFile, MessageComment, UserModel
 
 
 class TranslationForm(forms.Form):
@@ -58,6 +58,9 @@ class TranslationForm(forms.Form):
 
 
 class CommentForm(forms.ModelForm):
+    translation_file = forms.ModelChoiceField(queryset=TranslationFile.objects.all(), widget=forms.HiddenInput())
+    msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
+    body = forms.CharField(widget=forms.Textarea(attrs={'cols': '120', 'rows': '8'}))
 
     class Meta:
         model = MessageComment

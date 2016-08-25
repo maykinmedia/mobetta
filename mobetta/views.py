@@ -1,8 +1,7 @@
 import re
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render
+from django.views.generic import View, FormView, ListView, TemplateView
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.forms import formset_factory
@@ -11,7 +10,9 @@ from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.views.generic import FormView, ListView, TemplateView
+from django.contrib.auth.decorators import user_passes_test
+from django.http import HttpResponseRedirect, JsonResponse
+from django.conf import settings
 
 from mobetta import util
 from mobetta import formsets

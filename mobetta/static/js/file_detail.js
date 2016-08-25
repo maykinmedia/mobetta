@@ -98,10 +98,8 @@ function FileDetailView() {
         this.$add_comment_modal.find('.comment-form').data('form-prefix', formprefix);
 
         // Populate the hidden fields with file_pk and msgid
-        var filefield = this.$add_comment_modal.find('input[name="translation_file"]');
         var msgidfield = this.$add_comment_modal.find('input[name="msgid"]');
 
-        filefield.val(file_pk);
         msgidfield.val(msgid);
 
         this.$add_comment_modal.show();

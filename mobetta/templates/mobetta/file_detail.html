@@ -143,9 +143,9 @@
             <div class="modal-body">
                 <form class="comment-form" data-submiturl="{% url 'ajax_add_comment' %}" data-form-prefix="">
                     {% csrf_token %}
-                    <input type="hidden" name="translation_file" value="" />
-                    <input type="hidden" name="msgid" value="" />
-                    <textarea name="body"></textarea>
+                    {{ comment_form.translation_file }}
+                    {{ comment_form.msgid }}
+                    {{ comment_form.body }}
                     <span class="errorlist" ></span>
                     <button>Submit</button>
                 </form>
