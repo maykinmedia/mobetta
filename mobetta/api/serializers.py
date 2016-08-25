@@ -11,7 +11,7 @@ class TranslationFileSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
-    translation_file = serializers.HyperlinkedIdentityField(view_name="api:translationfile-detail")
+    translation_file = serializers.PrimaryKeyRelatedField(many=False, queryset=TranslationFile.objects.all())
 
     class Meta:
         model = MessageComment
@@ -19,5 +19,4 @@ class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
 
     def create(self, validated_data):
         current_user = self.context['request'].user
-        print validated_data
         return MessageComment.objects.create(user=current_user, **validated_data)

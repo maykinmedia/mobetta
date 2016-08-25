@@ -248,6 +248,11 @@ class FileDetailView(FormView):
         if 'search_tags' in query_params:
             search_tags = ' '.join(query_params.copy().pop('search_tags'))
 
+        # Prepopulate comment form with the current translation file
+        comment_form = CommentForm(initial={
+            'translation_file': self.file,
+        })
+
         ctx.update({
             'file': self.file,
             'filter_query_params': filter_query_params.urlencode(),
@@ -257,6 +262,7 @@ class FileDetailView(FormView):
             'pagination_query_params': pagination_query_params.urlencode(),
             'paginator': paginator,
             'search_tags': search_tags,
+            'comment_form': comment_form,
         })
 
         return ctx

@@ -36,24 +36,23 @@ function FileDetailView() {
             type: 'POST',
             data: data,
             success: $.proxy(function(data) {
-                if (data['status'] === 'success') {
-                    // Hide modal and show success message
-                    var commentcounter = $('#id_'+formprefix+'-comment-count');
-                    commentcounter.empty();
-                    commentcounter.append(data['new_comment_count']);
+                // Hide modal and show success message
+                var commentcounter = $('#id_'+formprefix+'-comment-count');
+                commentcounter.empty();
+                commentcounter.append(data['new_comment_count']);
 
-                    this.$add_comment_modal.hide();
-                }
-                else if (data['status'] === 'invalid') {
-                    // Show form errors
-                    var errorbox = $(e.target).find('.errorlist');
-                    errorbox.empty();
+                this.$add_comment_modal.hide();
+            }, this),
 
-                    for (var i=0; i < data['errors']['body'].length; i++) {
-                        errorbox.append(data['errors']['body'][i]);
-                    }
+            error: $.proxy(function(data) {
+                // Show form errors
+                var errorbox = $(e.target).find('.errorlist');
+                errorbox.empty();
+
+                for (var i=0; i < data.responseJSON['body'].length; i++) {
+                    errorbox.append(data.responseJSON['body'][i]);
                 }
-            }, this)
+            }, this),
         });
     };
 
