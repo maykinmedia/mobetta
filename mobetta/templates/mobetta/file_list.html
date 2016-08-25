@@ -11,6 +11,7 @@
 <h3>{% trans "Translation files for" %} {{ language_name }}</h3>
 <hr/>
 <br/>
+
 <table cellspacing="0">
     <thead>
         <tr>
@@ -23,6 +24,7 @@
             <th>{% trans "Filename" %}</th>
             <th>{% trans "Created" %}</th>
             <th>{% trans "Edit history" %}</th>
+            <th>{% trans "PO File" %}</th>
         </tr>
     </thead>
     <tbody>
@@ -38,6 +40,7 @@
                 <td>{{ file.filepath }}</td>
                 <td>{{ file.created }}</td>
                 <td><a href="{% url 'edit_history' file_pk=file.pk %}">View</a></td>
+                <td><a href="{% url 'download' file_pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a></td>
             </tr>
           {% endwith %}
         {% endfor %}

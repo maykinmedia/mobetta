@@ -389,7 +389,6 @@ class FileListViewTests(POFileTestCase, WebTest):
         self.assertEqual(stats_results['filename'], self.pofile_path)
 
 
-
 def get_column(response, column_name):
     """
     Return a list of BeautifulSoup <td> Tag for a given column name.
@@ -644,3 +643,24 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
         self.assertIn('Crazy', values[0].contents[0])
         self.assertIn('Boring', values[1].contents[0])
         self.assertIn('Awesome', values[2].contents[0])
+
+
+class DownloadPOFileViewTests(POFileTestCase, WebTest):
+
+    def setUp(self):
+        super(DownloadPOFileViewTests, self).setUp()
+
+        self.admin_user = AdminFactory.create()
+
+    def test_fail_if_targeted_translation_file_does_not_exist(self):
+        """
+        response = self.app.get(
+            reverse('download', args=(666,)),
+            user=self.admin_user,
+        )
+
+        self.assertEqual(response.status_code, 404)
+        """
+    def test_succeed_to_download_po_file(self):
+        pass
+
