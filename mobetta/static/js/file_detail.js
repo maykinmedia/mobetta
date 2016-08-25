@@ -5,6 +5,8 @@ function FileDetailView() {
     "use strict";
 
     this.$add_comment_buttons = $('.add-comment');
+    this.$add_comment_modal = $('#modal-add-comment');
+
     this.$view_comments_buttons = $('.view-comments');
     this.$view_comments_modal = $('#modal-view-comments');
 
@@ -13,6 +15,7 @@ function FileDetailView() {
      */
     this.construct = function() {
         this.setUpAddCommentButtons();
+        this.setUpAddCommentModal();
 
         this.setUpViewCommentsModal();
         this.setUpViewCommentsButtons();
@@ -25,18 +28,21 @@ function FileDetailView() {
     this.postComment = function(e) {
         e.preventDefault();
         var submiturl = $(e.target).data('submiturl');
+        var formprefix = $(e.target).data('form-prefix');
         var data = $(e.target).serialize();
+
         $.ajax({
             url: submiturl,
             type: 'POST',
             data: data,
-            success: function(data) {
+            success: $.proxy(function(data) {
                 if (data['status'] === 'success') {
-                    // Hide form and show success message
-                    var commentcounter = $(e.target).siblings('.comment-count');
+                    // Hide modal and show success message
+                    var commentcounter = $('#id_'+formprefix+'-comment-count');
                     commentcounter.empty();
                     commentcounter.append(data['new_comment_count']);
-                    $(e.target).hide();
+
+                    this.$add_comment_modal.hide();
                 }
                 else if (data['status'] === 'invalid') {
                     // Show form errors
@@ -47,18 +53,19 @@ function FileDetailView() {
                         errorbox.append(data['errors']['body'][i]);
                     }
                 }
-            }
+            }, this)
         });
     };
 
     /*
      * Open up the comment list modal.
      */
-    this.openModalForComments = function(msgid, data) {
+    this.openViewCommentsModal = function(msgid, data) {
         // Populate msgid header
         var comment_msgid = this.$view_comments_modal.find('.comment-msgid');
         comment_msgid.empty();
         comment_msgid.append(msgid);
+
         // Populate comments list
         var comments_list = this.$view_comments_modal.find('.comments-list');
         comments_list.empty();
@@ -81,6 +88,38 @@ function FileDetailView() {
         });
     };
 
+
+    this.openAddCommentModal = function(file_pk, msgid, formprefix) {
+        // Clear the message body
+        var body_input = this.$add_comment_modal.find('textarea[name="body"]')
+        body_input.val('');
+
+        // Add the form prefix to the form data
+        this.$add_comment_modal.find('.comment-form').data('form-prefix', formprefix);
+
+        // Populate the hidden fields with file_pk and msgid
+        var filefield = this.$add_comment_modal.find('input[name="translation_file"]');
+        var msgidfield = this.$add_comment_modal.find('input[name="msgid"]');
+
+        filefield.val(file_pk);
+        msgidfield.val(msgid);
+
+        this.$add_comment_modal.show();
+    };
+
+    /*
+     * Sets up the 'add comment' modal
+     */
+    this.setUpAddCommentModal = function() {
+        var closeButton = this.$add_comment_modal.find('.close');
+        closeButton.on('click', $.proxy(function() {
+            this.$add_comment_modal.hide();
+        }, this));
+
+        var commentform = this.$add_comment_modal.find('.comment-form');
+        commentform.on('submit', $.proxy(this.postComment, this));
+    };
+
     /*
      * Sets up the 'view comments' modal
      */
@@ -88,20 +127,20 @@ function FileDetailView() {
         var closeButton = this.$view_comments_modal.find('.close');
         closeButton.on('click', $.proxy(function() {
             this.$view_comments_modal.hide();
-            //this.$view_comments_modal.style.display = "none";
         }, this));
     };
+
 
     /*
      * Set up a single instance of an 'add comment' button with its form.
      */
     this.setUpOneAddCommentButton = function(i, btn) {
-        var commentform_id = $(btn).data('formid');
-        var commentform = $('#' + commentform_id);
-        commentform.on('submit', $.proxy(this.postComment, this));
+        var file_pk = $(btn).data('filepk');
+        var msgid = $(btn).data('msgid');
+        var formprefix = $(btn).data('form-prefix');
 
         $(btn).on('click', $.proxy(function(e) {
-            commentform.toggle();
+            this.openAddCommentModal(file_pk, msgid, formprefix);
         }, this));
     };
 
@@ -117,8 +156,7 @@ function FileDetailView() {
             url: url,
             type: 'GET',
             success: $.proxy(function(data) {
-                this.openModalForComments(msgid, data);
-                //$.proxy(this.openModalForComments, this, data);
+                this.openViewCommentsModal(msgid, data);
             }, this),
             error: $.proxy(function(data) {
                 console.log("Error!");

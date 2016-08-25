@@ -108,18 +108,10 @@
                                   </td>
                                 {% endif %}
                                 <td>
-                                  <span class="comment-count" id="{{ form.prefix }}-comment-count">{% comment_count file form.msgid.value %}</span> comments
-                                  <button type="button" class="add-comment" data-formid="{{ form.prefix }}-comment-form">
+                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.msgid.value %}</span> comments
+                                  <button type="button" class="add-comment" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
                                     {% trans "Add comment" %}
                                   </button>
-                                  <form class="comment-form" id="{{ form.prefix }}-comment-form" style="display:none" data-submiturl="{% url 'ajax_add_comment' %}">
-                                      {% csrf_token %}
-                                      <input type="hidden" name="translation_file" value="{{ file.pk }}" />
-                                      <input type="hidden" name="msgid" value="{{ form.msgid.value }}" />
-                                      <textarea name="body"></textarea>
-                                      <span class="errorlist" ></span>
-                                      <button>Submit</button>
-                                  </form>
                                   <button type="button" class="view-comments" data-msgid="{{ form.msgid.value }}" data-url="{% url 'api:messagecomment-list' %}?translation_file={{ file.pk }}&msgid={{ form.msgid.value|iriencode }}">
                                     {% trans "View comments" %}
                                   </button>
@@ -139,6 +131,27 @@
 
             {% include 'mobetta/pagination.html' %}
 
+        </div>
+    </div>
+
+    <div class="modal" id="modal-add-comment">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close">x</span>
+                <h3>&quot;<span class="comment-msgid"></span>&quot;</h3>
+            </div>
+            <div class="modal-body">
+                <form class="comment-form" data-submiturl="{% url 'ajax_add_comment' %}" data-form-prefix="">
+                    {% csrf_token %}
+                    <input type="hidden" name="translation_file" value="" />
+                    <input type="hidden" name="msgid" value="" />
+                    <textarea name="body"></textarea>
+                    <span class="errorlist" ></span>
+                    <button>Submit</button>
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
         </div>
     </div>
 
