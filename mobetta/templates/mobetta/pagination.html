@@ -5,15 +5,11 @@
 
 <div class="pagination">
 
-    {% if paginator.num_pages <= 1 %}
-
-        {% trans "Displaying:" %}
-
-    {% else %}
+    {% if is_paginated %}
 
         {% if page_obj.has_previous %}
             <span class="pagination__previous" >
-                <a class="pagination__previous__link" href="?page={{ page_obj.previous_page_number }}">Previous <</a>
+                <a class="pagination__previous__link" href="?page={{ page_obj.previous_page_number }}{% if pagination_query_params %}&{{ pagination_query_params }}{% endif %}">Previous <</a>
             </span>
         {% endif %}
 
@@ -31,11 +27,16 @@
 
         {% if page_obj.has_next %}
             <span class="pagination__next" >
-                <a class="pagination__next__link" href="?page={{ page_obj.next_page_number }}">> Next</a>
+                <a class="pagination__next__link" href="?page={{ page_obj.next_page_number }}{% if pagination_query_params %}&{{ pagination_query_params }}{% endif %}">> Next</a>
             </span>
         {% endif %}
 
-
     {% endif %}
+
+    <div class="pagination__counter">
+        {% blocktrans count message_number=page_obj|length with total=paginator.count %}
+            {{ message_number }}/{{ total|default:"0" }} result {% plural %}{{ message_number }}/{{ total }} results
+        {% endblocktrans %}
+    </div>
 
 </div>
