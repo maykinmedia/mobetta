@@ -39,7 +39,7 @@ function FileDetailView() {
                 // Hide modal and show success message
                 var commentcounter = $('#id_'+formprefix+'-comment-count');
                 commentcounter.empty();
-                commentcounter.append(data['new_comment_count']);
+                commentcounter.append(data['comment_count']);
 
                 this.$add_comment_modal.hide();
             }, this),
