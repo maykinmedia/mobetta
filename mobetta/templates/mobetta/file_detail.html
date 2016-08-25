@@ -110,32 +110,12 @@
                 </table>
 
                 <div class="submit-row">
-
                     <input type="submit" />
-
-                    <p class="paginator">
-                        {% if page.paginator.num_pages > 1 %}
-                            {% trans "Skip to page:" %}
-
-                            {% for i in page.paginator.page_range %}
-                                {% if i == page.number %}
-                                    <span class="this-page">{{i}}</span>
-                                {% else %}
-                                    <a href="?page={{i}}{% if page_query_params %}&{{ page_query_params }}{% endif %}">{{i}}</a>
-                                {% endif %}
-                            {% endfor %}
-                        {% else %}
-                            {% trans "Displaying:" %}
-                        {% endif %}
-
-                        <strong>
-                            {% blocktrans count message_number=page|length with hits=page.paginator.count %}
-                                {{ message_number }}/{{ hits }} message{% plural %}{{ message_number }}/{{ hits }} messages
-                            {% endblocktrans %}
-                        </strong>
-                    </p>
                 </div>
             </form>
+
+            {% include 'mobetta/pagination.html' %}
+
         </div>
     </div>
 {% endblock content %}

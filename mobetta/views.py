@@ -91,6 +91,8 @@ class FileDetailView(FormView):
         formset=TranslationFormSet,
         extra=0,
     )
+    paginator_class = MovingRangePaginator
+    paginate_by = 20
     translations_per_page = 20
 
     @method_decorator(never_cache)
@@ -205,7 +207,7 @@ class FileDetailView(FormView):
 
         translations = self.get_translations()
 
-        paginator = Paginator(translations, self.translations_per_page)
+        paginator = self.get_paginator(translations, self.paginate_by) #Paginator(translations, self.translations_per_page)
         page = self.get_page(paginator)
 
         ctx['formset'] = ctx.pop('form')
@@ -232,12 +234,12 @@ class FileDetailView(FormView):
             )
 
         # Keep track of the query parameters for the url of the pages.
-        page_query_params = self.request.GET.copy()
-        if 'page' in page_query_params:
-            page_query_params.pop('page')
+        pagination_query_params = self.request.GET.copy()
+        if 'page' in pagination_query_params:
+            pagination_query_params.pop('page')
 
         # Keep track of the query parameters for the url of the filters.
-        filter_query_params = page_query_params.copy()
+        filter_query_params = pagination_query_params.copy()
         if 'type' in filter_query_params:
             filter_query_params.pop('type')
 
@@ -248,11 +250,14 @@ class FileDetailView(FormView):
             search_tags = ' '.join(query_params.copy().pop('search_tags'))
 
         ctx.update({
-            'page': page,
             'file': self.file,
-            'search_tags': search_tags,
-            'page_query_params': page_query_params.urlencode(),
             'filter_query_params': filter_query_params.urlencode(),
+            'is_paginated': paginator.num_pages > 1,
+            'object_list': page.object_list,
+            'page_obj': page,
+            'pagination_query_params': pagination_query_params.urlencode(),
+            'paginator': paginator,
+            'search_tags': search_tags,
         })
 
         return ctx
@@ -271,13 +276,15 @@ class FileDetailView(FormView):
         return entries
 
     def get_page(self, paginator):
-        page = self.request.GET.get('page')
         try:
-            entries = paginator.page(page)
+            page = paginator.page(self.request.GET.get('page'))
         except:
-            entries = paginator.page(1)
+            page = paginator.page(1)
 
-        return entries
+        return page
+
+    def get_paginator(self, queryset, per_page, orphans=0, allow_empty_first_page=True):
+        return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
 
     def get_success_url(self):
         return reverse('file_detail', args=(self.file.pk,))
