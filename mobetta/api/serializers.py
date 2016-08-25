@@ -13,10 +13,11 @@ class TranslationFileSerializer(serializers.HyperlinkedModelSerializer):
 class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
     translation_file = serializers.PrimaryKeyRelatedField(many=False, queryset=TranslationFile.objects.all())
     comment_count = serializers.SerializerMethodField()
+    user_name = serializers.SerializerMethodField()
 
     class Meta:
         model = MessageComment
-        fields = ('msgid', 'translation_file', 'body', 'created', 'comment_count')
+        fields = ('msgid', 'translation_file', 'body', 'created', 'comment_count', 'user_name')
 
     def create(self, validated_data):
         current_user = self.context['request'].user
@@ -27,3 +28,6 @@ class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
             msgid=instance.msgid,
             translation_file=instance.translation_file,
         ).count()
+
+    def get_user_name(self, instance):
+        return str(instance.user)

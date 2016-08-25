@@ -3,6 +3,10 @@
     color: #ff0000;
 }
 
+.errorlist {
+    color: #bb0000;
+}
+
 /* The modal (background) */
 .modal {
     display: none;

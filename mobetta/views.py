@@ -20,6 +20,7 @@ from mobetta.models import TranslationFile, EditLog, MessageComment
 from mobetta.forms import TranslationForm, CommentForm
 from mobetta.access import can_translate
 from mobetta.conf import settings as mobetta_settings
+from mobetta.paginators import MovingRangePaginator
 
 
 class LanguageListView(TemplateView):

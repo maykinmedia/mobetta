@@ -71,7 +71,7 @@ function FileDetailView() {
 
         if (data.length > 0) {
             for (var i=0; i < data.length; i++) {
-                comments_list.append('<li>'+data[i]['body']+'</li>');
+                comments_list.append('<li><span class="comment-author">['+data[i]['user_name']+']</span> '+data[i]['body']+'</li>');
             }
         }
         else {
