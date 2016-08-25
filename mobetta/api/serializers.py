@@ -16,3 +16,8 @@ class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = MessageComment
         fields = ('msgid', 'translation_file', 'body', 'created')
+
+    def create(self, validated_data):
+        current_user = self.context['request'].user
+        print validated_data
+        return MessageComment.objects.create(user=current_user, **validated_data)
