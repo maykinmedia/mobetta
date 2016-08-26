@@ -46,6 +46,8 @@ class TranslationSuggestionsView(APIView):
     """
     View for fetching translation suggestions using MS Translate.
     """
+    permission_classes = [CanTranslatePermission]
+
     def get(self, request, format=None):
         original_message = request.query_params.get('msgid')
         language = request.query_params.get('language_code')
