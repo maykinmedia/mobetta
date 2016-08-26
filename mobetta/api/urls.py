@@ -13,4 +13,5 @@ router.register(r'comments', views.MessageCommentViewSet)
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^suggestion/', views.TranslationSuggestionsView.as_view(), name='translation_suggestion'),
 ]

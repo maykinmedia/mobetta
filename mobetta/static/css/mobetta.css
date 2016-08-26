@@ -7,6 +7,10 @@
     color: #bb0000;
 }
 
+.auto-suggestion-error {
+    color: #bb0000;
+}
+
 /* The modal (background) */
 .modal {
     display: none;

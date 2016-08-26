@@ -10,6 +10,8 @@ function FileDetailView() {
     this.$view_comments_buttons = $('.view-comments');
     this.$view_comments_modal = $('#modal-view-comments');
 
+    this.$show_suggestion_buttons = $('.show-suggestion');
+
     /*
      * Constructor
      */
@@ -19,6 +21,8 @@ function FileDetailView() {
 
         this.setUpViewCommentsModal();
         this.setUpViewCommentsButtons();
+
+        this.setUpShowSuggestionButtons();
     };
 
     /*
@@ -177,6 +181,50 @@ function FileDetailView() {
      */
     this.setUpViewCommentsButtons = function() {
         this.$view_comments_buttons.each($.proxy(this.setUpOneViewCommentsButton, this));
+    };
+
+    /*
+     * Fetch a translation suggestion from the API.
+     */
+    this.fetchSuggestion = function(url, formprefix) {
+        var suggest_button = $('button.show-suggestion[data-form-prefix="'+formprefix+'"]')
+        suggest_button.empty();
+        suggest_button.append("Fetching...");
+
+        $.ajax({
+            url: url,
+            type: 'GET',
+            success: $.proxy(function(data) {
+                console.log(data['suggestion']);
+                var suggestion_span = $('#id_'+formprefix+'-auto-suggestion')
+                suggestion_span.empty();
+                suggestion_span.append(data['suggestion']);
+                suggest_button.hide();
+            }, this),
+            error: $.proxy(function(data) {
+                var suggestion_error_span = $('#id_'+formprefix+'-auto-suggestion-error')
+                suggestion_error_span.empty();
+                suggestion_error_span.append("An error occurred.");
+                suggest_button.hide();
+            }, this),
+        });
+    };
+
+    /*
+     * Set up a 'show suggestion' button.
+     */
+    this.setUpOneShowSuggestionButton = function(i, btn) {
+        var url = $(btn).data('url');
+        var formprefix = $(btn).data('form-prefix');
+
+        $(btn).on('click', $.proxy(this.fetchSuggestion, this, url, formprefix));
+    };
+
+    /*
+     * Set up all 'show suggestion' buttons.
+     */
+    this.setUpShowSuggestionButtons = function() {
+        this.$show_suggestion_buttons.each($.proxy(this.setUpOneShowSuggestionButton, this));
     };
 
 

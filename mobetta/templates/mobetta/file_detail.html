@@ -69,7 +69,7 @@
                             <th>{% trans "Fuzzy" %}</th>
                             <th>{% trans "Occurrences" %}</th>
                             <th>{% trans "Last edited" %}</th>
-                            {% if suggestions %}
+                            {% if show_suggestions %}
                               <th>{% trans "Suggestion" %}</th>
                             {% endif %}
                             <th>{% trans "Comments" %}</th>
@@ -102,9 +102,11 @@
                                 <td>
                                   {% last_edit file form.msgid.value %}
                                 </td>
-                                {% if suggestions %}
+                                {% if show_suggestions %}
                                   <td>
-                                    {{ suggestions|get_item:form.msgid.value }}
+                                    <button type="button" class="show-suggestion" data-form-prefix="{{ form.prefix }}" data-url="{% url 'api:translation_suggestion' %}?msgid={{ form.msgid.value|iriencode }}&language_code={{ file.language_code }}">Show suggestion</button>
+                                    <span class="auto-suggestion" id="id_{{ form.prefix }}-auto-suggestion"></span>
+                                    <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
                                   </td>
                                 {% endif %}
                                 <td>
