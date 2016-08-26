@@ -1,26 +1,26 @@
 import re
 
-from django.conf import settings
-from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test
+from django.shortcuts import render
+from django.views.generic import View, FormView, ListView, TemplateView
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.forms import formset_factory
-from django.http import HttpResponse, HttpResponseRedirect
+from django.contrib import messages
 from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
+from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.views.generic import FormView, ListView, TemplateView
+from django.contrib.auth.decorators import user_passes_test
+from django.http import HttpResponseRedirect, JsonResponse
+from django.conf import settings
 
-
-from .access import can_translate
-from .conf import settings as mobetta_settings
-from .forms import TranslationForm
-from .formsets import TranslationFormSet
-from .models import TranslationFile, EditLog
-from .paginators import MovingRangePaginator
 from mobetta import util
+from mobetta import formsets
+from mobetta.models import TranslationFile, EditLog, MessageComment
+from mobetta.forms import TranslationForm, CommentForm
+from mobetta.access import can_translate
+from mobetta.conf import settings as mobetta_settings
+from mobetta.paginators import MovingRangePaginator
 
 
 class LanguageListView(TemplateView):
@@ -88,7 +88,7 @@ class FileDetailView(FormView):
     template_name = 'mobetta/file_detail.html'
     form_class = formset_factory(
         TranslationForm,
-        formset=TranslationFormSet,
+        formset=formsets.TranslationFormSet,
         extra=0,
     )
     paginator_class = MovingRangePaginator
@@ -249,6 +249,11 @@ class FileDetailView(FormView):
         if 'search_tags' in query_params:
             search_tags = ' '.join(query_params.copy().pop('search_tags'))
 
+        # Prepopulate comment form with the current translation file
+        comment_form = CommentForm(initial={
+            'translation_file': self.file,
+        })
+
         ctx.update({
             'file': self.file,
             'filter_query_params': filter_query_params.urlencode(),
@@ -258,6 +263,7 @@ class FileDetailView(FormView):
             'pagination_query_params': pagination_query_params.urlencode(),
             'paginator': paginator,
             'search_tags': search_tags,
+            'comment_form': comment_form,
         })
 
         return ctx
