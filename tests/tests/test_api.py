@@ -3,6 +3,11 @@ try:
 except ImportError:
     from urllib import urlencode
 
+try:
+    from unittest import mock
+except ImportError:
+    import mock
+
 from django.test import TestCase
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
@@ -15,10 +20,10 @@ from .utils import POFileTestCase
 from .factories import AdminFactory, MessageCommentFactory, UserFactory
 
 
-class APITests(POFileTestCase):
+class MessageCommentAPITests(POFileTestCase):
 
     def setUp(self):
-        super(APITests, self).setUp()
+        super(MessageCommentAPITests, self).setUp()
 
         self.admin_user = AdminFactory.create()
 
@@ -149,6 +154,63 @@ class APITests(POFileTestCase):
             urlencode({
                 'translation_file': self.transfile.pk,
                 'msgid': u"String 1"
+            })
+        )
+
+        response = client.get(url, format='json')
+        self.assertEqual(response.status_code, 403)
+
+
+class TranslationSuggestionAPITests(TestCase):
+
+    def setUp(self):
+        super(TestCase, self).setUp()
+
+        self.admin_user = AdminFactory.create()
+
+    @mock.patch('mobetta.util.get_automated_translation')
+    @mock.patch('mobetta.util.get_translator')
+    def test_get_translation(self, mock_get_translator, mock_get_automated_translation):
+        # Set up the mock
+        mock_get_translator.return_value = None
+        mock_get_automated_translation.return_value = u"Automated translation"
+
+        client = APIClient()
+
+        client.force_authenticate(user=self.admin_user)
+
+        url = "{}?{}".format(
+            reverse('api:translation_suggestion'),
+            urlencode({
+                'msgid': u"String to translate",
+                'language_code': 'nl',
+            })
+        )
+
+        response = client.get(url, format='json')
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.data['suggestion'], u"Automated translation")
+        self.assertEqual(response.data['msgid'], u"String to translate")
+        self.assertEqual(response.data['language_code'], 'nl')
+
+    @mock.patch('mobetta.util.get_automated_translation')
+    @mock.patch('mobetta.util.get_translator')
+    def test_get_translation_unauthorised(self, mock_get_translator, mock_get_automated_translation):
+        # Set up the mock
+        mock_get_translator.return_value = None
+        mock_get_automated_translation.return_value = u"Automated translation"
+
+        client = APIClient()
+
+        non_admin_user = UserFactory.create()
+        client.force_authenticate(user=non_admin_user)
+
+        url = "{}?{}".format(
+            reverse('api:translation_suggestion'),
+            urlencode({
+                'msgid': u"String to translate",
+                'language_code': 'nl',
             })
         )
 
