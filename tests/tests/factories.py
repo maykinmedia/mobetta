@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from mobetta.models import EditLog, TranslationFile
+from mobetta.models import EditLog, TranslationFile, MessageComment
 
 from factory import DjangoModelFactory, SubFactory
 
@@ -41,3 +41,13 @@ class EditLogFactory(DjangoModelFactory):
 
     class Meta:
         model = EditLog
+
+
+class MessageCommentFactory(DjangoModelFactory):
+    user = SubFactory(AdminFactory)
+    translation_file = SubFactory(TranslationFileFactory)
+    msgid = 'default_msgid'
+    body = 'Default message body'
+
+    class Meta:
+        model = MessageComment
