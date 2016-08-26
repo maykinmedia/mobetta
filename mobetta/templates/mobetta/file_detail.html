@@ -84,8 +84,7 @@
                                   {{ form.msgid.value|highlight_tokens|safe }}
                                 </td>
                                 <td>
-                                  {{ form.context }}
-                                  {{ form.context.errors }}
+                                  {{ form.context.value }}
                                 </td>
                                 <td>
                                   {{ form.translation }}
@@ -121,7 +120,6 @@
                             </tr>
                             {{ form.old_translation }}
                             {{ form.old_fuzzy }}
-                            {{ form.old_context }}
                         {% endfor %}
                     </tbody>
                 </table>
