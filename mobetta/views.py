@@ -132,7 +132,6 @@ class FileDetailView(FormView):
         file_translations = {
             poentry.msgid: {
                 'translation': poentry.msgstr,
-                'context': poentry.msgctxt,
             }
 
             for poentry in [
@@ -144,7 +143,6 @@ class FileDetailView(FormView):
             form_data = f.cleaned_data
             form_data.update({
                 'old_translation': file_translations[form_data['msgid']]['translation'],
-                'old_context': file_translations[form_data['msgid']]['context'],
             })
             new_form_data = {
                 '{}-{}'.format(f.prefix, k) : form_data[k]
@@ -219,7 +217,6 @@ class FileDetailView(FormView):
                 'fuzzy': translation['fuzzy'],
                 'old_fuzzy': translation['fuzzy'],
                 'context': translation['context'],
-                'old_context': translation['context'],
                 'occurrences': translation['occurrences']
             }
             for translation in page

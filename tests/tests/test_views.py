@@ -75,18 +75,13 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
     def test_multiple_edits(self):
         """
-        Go to the file detail view, make an edit to one translation, one context,
+        Go to the file detail view, make an edit to one translation
         and one 'fuzzy' attribute. Check that these edits are in the PO file.
         """
         response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         translation_edit_form = response.forms['translation-edit']
-
-        msgid_for_context_edit = translation_edit_form['form-0-msgid'].value
-        self.assertEqual(translation_edit_form['form-0-context'].value, u'')
-        new_context = u"A translation cøntext"
-        translation_edit_form['form-0-context'] = new_context
 
         msgid_for_translation_edit = translation_edit_form['form-1-msgid'].value
         self.assertEqual(translation_edit_form['form-1-translation'].value, u'')
@@ -103,13 +98,12 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         # Check the file
         pofile = self.transfile.get_polib_object()
-        self.assertEqual(pofile.find(msgid_for_context_edit).msgctxt, new_context)
         self.assertEqual(pofile.find(msgid_for_translation_edit).msgstr, new_translation)
         self.assertIn('fuzzy', pofile.find(msgid_for_fuzzy_edit).flags)
 
         # Check the edit history
         file_edits = self.transfile.edit_logs.all()
-        self.assertEqual(file_edits.count(), 3)
+        self.assertEqual(file_edits.count(), 2)
 
     def test_simultaneous_edits_blocked(self):
         """
