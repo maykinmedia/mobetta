@@ -20,7 +20,7 @@ setup(
     install_requires=['Django>=1.8','polib', 'djangorestframework'],
     include_package_data=True,
     packages=find_packages(),
-    package_data={'mobetta': templates}
+    package_data={'mobetta': templates},
 
     # tests
     test_suite='runtests.runtests',
