@@ -84,7 +84,7 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         translation_edit_form = response.forms['translation-edit']
 
         msgid_for_translation_edit = translation_edit_form['form-1-msgid'].value
-        self.assertEqual(translation_edit_form['form-1-translation'].value, u'')
+        self.assertEqual(translation_edit_form['form-1-translation'].value, u'Translation of string 2')
         new_translation = u"Another new translatioņ"
         translation_edit_form['form-1-translation'] = new_translation
 
@@ -350,6 +350,38 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<li class="success">Changed 2 translations</li>')
+
+    def test_search_on_msgid(self):
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.forms['translation-search']
+        form['search_tags'] = "comment" # search should be case-insensitive
+
+        response = form.submit()
+        self.assertContains(response, "String 3 with comment") # The message ID searched for
+
+    def test_search_on_msgstr(self):
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.forms['translation-search']
+        form['search_tags'] = "translation" # search should be case-insensitive
+
+        response = form.submit()
+        self.assertContains(response, "String 2") # The message ID associated with the context result
+        self.assertContains(response, "Translation of string 2") # The message string we searched for
+
+    def test_search_on_context(self):
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        form = response.forms['translation-search']
+        form['search_tags'] = "context" # search should be case-insensitive
+
+        response = form.submit()
+        self.assertContains(response, "Context hint") # The context hint we searched for
+        self.assertContains(response, "String 4") # The message string associated with the context result
 
 
 class FileListViewTests(POFileTestCase, WebTest):

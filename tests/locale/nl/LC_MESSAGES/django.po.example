@@ -21,7 +21,7 @@ msgid "String 1"
 msgstr ""
 
 msgid "String 2"
-msgstr ""
+msgstr "Translation of string 2"
 
 #. Translators: This is a text of the base template
 #: templates/base.html:43
