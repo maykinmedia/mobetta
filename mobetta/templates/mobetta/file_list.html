@@ -4,8 +4,11 @@
 {% block pagetitle %}{{ block.super }} - {% trans "Translation files" %}{% endblock %}
 
 {% block breadcrumbs %}
-    <div class="breadcrumbs">{% trans "Home" %}</div>
-{% endblock breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; {{ language_name }}
+</div>
+{% endblock %}
 
 {% block content %}
 <h3>{% trans "Translation files for" %} {{ language_name }}</h3>

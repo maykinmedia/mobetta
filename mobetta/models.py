@@ -50,6 +50,9 @@ class TranslationFile(models.Model):
             'obsolete_messages': obsolete_entries,
         }
 
+    def get_language_name(self):
+        return dict(settings.LANGUAGES)[self.language_code]
+
 
 class EditLog(models.Model):
 
