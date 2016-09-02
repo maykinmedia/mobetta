@@ -4,8 +4,13 @@
 {% block pagetitle %}{{ block.super }} - {% trans "File" %} - {% trans "Edit history" %}{% endblock %}
 
 {% block breadcrumbs %}
-    <div class="breadcrumbs">{% trans "Home" %}</div>
-{% endblock breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; <a href="{% url 'file_list' lang_code=translation_file.language_code %}">{{ translation_file.get_language_name }}</a>
+  &rsaquo; <a href="{% url 'file_detail' pk=translation_file.pk %}">{{ translation_file.filepath }}</a>
+  &rsaquo; {{ _('Edit history') }}
+</div>
+{% endblock %}
 
 {% block content %}
 <h3>{% trans "Edit history for" %} {{ translation_file.filepath }}</h3>
