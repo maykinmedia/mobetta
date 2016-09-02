@@ -7,6 +7,10 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+# add templates
+template_dir = "mobetta/templates/mobetta"
+templates = [os.path.join(template_dir, f) for f in os.listdir(template_dir)]
+
 setup(
     name='mobetta',
     version='0.0.1',
@@ -16,6 +20,7 @@ setup(
     install_requires=['Django>=1.8','polib', 'djangorestframework'],
     include_package_data=True,
     packages=find_packages(),
+    package_data={'mobetta': templates}
 
     # tests
     test_suite='runtests.runtests',
