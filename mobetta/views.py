@@ -105,11 +105,13 @@ class FileDetailView(FormView):
         return super(FileDetailView, self).dispatch(request, *args, **kwargs)
 
     def filter_by_search_tag(self, entries, tag):
-        regex = re.compile(tag)
+        regex = re.compile(tag, re.IGNORECASE)
 
         return (
             entry for entry in entries
-            if regex.search(entry.msgid) or regex.search(entry.msgstr)
+            if regex.search(entry.msgid)
+            or regex.search(entry.msgstr)
+            or (regex.search(entry.msgctxt) if entry.msgctxt else '')
         )
 
     def filter_by_type(self, pofile, type):
