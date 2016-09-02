@@ -33,7 +33,7 @@ def get_occurrences(poentry):
     if  size > 2:
         subset.append('... and {} more !'.format(size - 2))
 
-    return '\n'.join(subset)
+    return '<br />'.join(subset)
 
 
 def app_name_from_filepath(path):

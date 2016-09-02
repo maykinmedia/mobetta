@@ -1,6 +1,7 @@
 import re
 
 from django import template
+from django.utils.html import escape
 
 from mobetta.models import EditLog, MessageComment
 from mobetta.util import get_token_regexes
@@ -54,6 +55,7 @@ def highlight_tokens(text):
     """
     regex = '|'.join(get_token_regexes())
 
+    text = escape(text)
     format_tokens = re.findall(regex, text)
 
     for t in format_tokens:

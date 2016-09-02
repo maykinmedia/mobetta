@@ -85,7 +85,7 @@
                                   {{ form.msgid.value|highlight_tokens|safe }}
                                 </td>
                                 <td>
-                                  {{ form.context.value }}
+                                  {{ form.context.value|escape }}
                                 </td>
                                 <td>
                                   {{ form.translation }}
@@ -97,7 +97,7 @@
                                   {{ form.fuzzy.errors }}
                                 </td>
                                 <td>
-                                  {{ form.occurrences.value }}
+                                  {{ form.occurrences.value|safe }}
                                 </td>
                                 <td>
                                   {% last_edit file form.msgid.value %}
