@@ -1,9 +1,15 @@
 import re
 
 from django import forms
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Group
+from django.conf import settings
 
 from mobetta.util import get_token_regexes
-from mobetta.models import TranslationFile, MessageComment, UserModel
+from mobetta.models import TranslationFile, MessageComment
+
+
+ProjectUserModel = get_user_model()
 
 
 class TranslationForm(forms.Form):
@@ -62,3 +68,17 @@ class CommentForm(forms.ModelForm):
     class Meta:
         model = MessageComment
         fields = ['translation_file', 'msgid', 'body']
+
+
+class AddTranslatorForm(forms.Form):
+    user = forms.ModelChoiceField(queryset=ProjectUserModel.objects.all())
+    language = forms.ChoiceField(choices=settings.LANGUAGES)
+
+    def save(self, *args, **kwargs):
+        user = self.cleaned_data.get('user')
+        language = self.cleaned_data.get('language')
+
+        group, created = Group.objects.get_or_create(name='translators-%s' % language)
+
+        user.groups.add(group)
+
