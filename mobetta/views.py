@@ -4,21 +4,22 @@ from django.shortcuts import render
 from django.views.generic import View, FormView, ListView, TemplateView
 from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
+from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.decorators import user_passes_test, login_required
 from django.http import HttpResponseRedirect, JsonResponse
 from django.conf import settings
 
 from mobetta import util
 from mobetta import formsets
 from mobetta.models import TranslationFile, EditLog, MessageComment
-from mobetta.forms import TranslationForm, CommentForm
-from mobetta.access import can_translate
+from mobetta.forms import TranslationForm, CommentForm, AddTranslatorForm
+from mobetta.access import can_translate, can_translate_language
 from mobetta.conf import settings as mobetta_settings
 from mobetta.paginators import MovingRangePaginator
 
@@ -31,7 +32,8 @@ class LanguageListView(TemplateView):
         language_codes = TranslationFile.objects.all().values_list('language_code', flat=True)
         language_tuples = [
             (code, name, TranslationFile.objects.filter(language_code=code).count())
-            for code, name in settings.LANGUAGES if code in language_codes
+            for code, name in settings.LANGUAGES
+            if code in language_codes and can_translate_language(self.request.user, code)
         ]
         return language_tuples
 
@@ -66,9 +68,12 @@ class FileListView(ListView):
     context_object_name = 'files'
     template_name = 'mobetta/file_list.html'
 
-    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    @method_decorator(login_required)
     def dispatch(self, request, lang_code, *args, **kwargs):
         self.language_code = lang_code
+        if not can_translate_language(request.user, self.language_code):
+            raise PermissionDenied
+
         return super(FileListView, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
@@ -95,13 +100,16 @@ class FileDetailView(FormView):
     paginate_by = 20
     translations_per_page = 20
 
-    @method_decorator(never_cache)
-    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.file = get_object_or_404(
+        self.translation_file = get_object_or_404(
             TranslationFile,
             pk=self.request.resolver_match.kwargs['pk']
         )
+
+        if not can_translate_language(request.user, self.translation_file.language_code):
+            raise PermissionDenied
+
         return super(FileDetailView, self).dispatch(request, *args, **kwargs)
 
     def filter_by_search_tag(self, entries, tag):
@@ -124,7 +132,7 @@ class FileDetailView(FormView):
 
     def form_invalid(self, form):
         # Populate the old_<fieldname> values with the file's current translation/context
-        pofile = self.file.get_polib_object()
+        pofile = self.translation_file.get_polib_object()
 
         form_msgids = [
             f.cleaned_data['msgid']
@@ -161,7 +169,7 @@ class FileDetailView(FormView):
                 changes.append((f, f.get_changes()))
 
         if any(changes):
-            pofile = self.file.get_polib_object()
+            pofile = self.translation_file.get_polib_object()
 
             applied_changes, rejected_changes = util.update_translations(pofile, changes)
 
@@ -183,7 +191,7 @@ class FileDetailView(FormView):
                     for f, change in applied_changes:
                         EditLog.objects.create(
                             user=self.request.user,
-                            file_edited=self.file,
+                            file_edited=self.translation_file,
                             msgid=change['msgid'],
                             fieldname=change['field'],
                             old_value=change['from'],
@@ -245,11 +253,11 @@ class FileDetailView(FormView):
 
         # Prepopulate comment form with the current translation file
         comment_form = CommentForm(initial={
-            'translation_file': self.file,
+            'translation_file': self.translation_file,
         })
 
         ctx.update({
-            'file': self.file,
+            'file': self.translation_file,
             'filter_query_params': filter_query_params.urlencode(),
             'is_paginated': paginator.num_pages > 1,
             'object_list': page.object_list,
@@ -263,7 +271,7 @@ class FileDetailView(FormView):
         return ctx
 
     def get_entries(self):
-        entries = self.file.get_polib_object()
+        entries = self.translation_file.get_polib_object()
 
         type_filter = self.request.GET.get('type')
         if type_filter:
@@ -287,7 +295,7 @@ class FileDetailView(FormView):
         return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
 
     def get_success_url(self):
-        return reverse('file_detail', args=(self.file.pk,))
+        return reverse('file_detail', args=(self.translation_file.pk,))
 
     def get_translations(self):
         entries = self.get_entries()
@@ -315,13 +323,15 @@ class EditHistoryView(ListView):
     paginator_class = MovingRangePaginator
     paginate_by = 20
 
-    @method_decorator(never_cache)
-    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    @method_decorator(login_required)
     def dispatch(self, request, file_pk, *args, **kwargs):
         self.translation_file = get_object_or_404(
             TranslationFile,
             pk=file_pk
         )
+
+        if not can_translate_language(request.user, self.translation_file.language_code):
+            raise PermissionDenied
 
         return super(EditHistoryView, self).dispatch(request, *args, **kwargs)
 
@@ -363,3 +373,27 @@ class EditHistoryView(ListView):
         })
 
         return ctx
+
+
+class AddTranslatorView(FormView):
+
+    form_class = AddTranslatorForm
+    template_name = 'mobetta/add_translator.html'
+
+    @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
+    def dispatch(self, request, *args, **kwargs):
+        return super(AddTranslatorView, self).dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+
+        messages.success(self.request,
+            _("{user} successfully added as a translator for {language}").format(
+                user=str(form.cleaned_data.get('user')),
+                language=dict(settings.LANGUAGES)[form.cleaned_data.get('language')]
+            )
+        )
+        return super(AddTranslatorView, self).form_valid(form)
+
+    def get_success_url(self):
+        return reverse('language_list')

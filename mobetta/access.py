@@ -48,7 +48,7 @@ def can_translate_language(user, langid):
             return can_translate(user)
         elif not user.is_authenticated():
             return False
-        elif user.is_superuser and user.is_staff:
+        elif user.is_superuser:
             return True
         else:
             return user.groups.filter(name='translators-%s' % langid).exists()

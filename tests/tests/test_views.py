@@ -8,9 +8,10 @@ from django.core.management import call_command
 from django.core.urlresolvers import reverse
 from django.http import HttpRequest
 from django.utils.translation import ugettext as _
+from django.test import TestCase
 
-from .factories import AdminFactory, EditLogFactory, UserFactory
-from .utils import POFileTestCase
+from .factories import AdminFactory, EditLogFactory, UserFactory, TranslationFileFactory
+from .utils import POFileTestCase, MultiplePOFilesTestCase
 
 from mobetta.models import TranslationFile
 
@@ -690,3 +691,87 @@ class DownloadPOFileViewTests(POFileTestCase, WebTest):
     def test_succeed_to_download_po_file(self):
         pass
 
+
+class TranslationAccessTests(MultiplePOFilesTestCase, WebTest):
+
+    test_pofiles = [
+        ('django.po.example', 'es'),
+        ('django.po.example', 'nl'),
+        ('django.po.example', 'cy'),
+    ]
+
+    def setUp(self):
+        super(TranslationAccessTests, self).setUp()
+
+        self.normal_user = UserFactory.create()
+        self.admin_user = AdminFactory.create()
+
+        self.spanish_file = TranslationFile.objects.get(language_code='es')
+        self.dutch_file = TranslationFile.objects.get(language_code='nl')
+        self.welsh_file = TranslationFile.objects.get(language_code='cy')
+
+    def test_unauthorised_access(self):
+        url = reverse('file_detail', args=(self.spanish_file.pk,))
+        response = self.app.get(url, user=self.normal_user, status=403)
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_grant_language_access(self):
+        """
+        First add normal_user to the translation group (as the admin)
+        then test if they can edit a translation on that file.
+        (And none of the others)
+        """
+        url = reverse('add_translator')
+        response = self.app.get(url, user=self.admin_user)
+
+        self.assertEqual(response.status_code, 200)
+
+        form = response.forms['add-translator-form']
+        form['user'] = self.normal_user.pk
+        form['language'] = 'cy'
+
+        response = form.submit().follow()
+
+        self.assertIn(_("{user} successfully added as a translator for {language}").format(
+            user=str(self.normal_user).capitalize(),
+            language=dict(settings.LANGUAGES)['cy']
+        ), response.text)
+
+        # Now try to access the Welsh translation file list as a normal user
+        url = reverse('file_list', kwargs={'lang_code': 'cy'})
+        response = self.app.get(url, user=self.normal_user)
+        self.assertEqual(response.status_code, 200)
+
+        # Now go to the file detail itself and change a translation
+        welsh_file = TranslationFile.objects.get(language_code='cy')
+        url = reverse('file_detail', args=(welsh_file.pk,))
+        response = self.app.get(url, user=self.normal_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # First string: u'String 1' -> u''
+        msgid_to_edit = translation_edit_form['form-0-msgid'].value
+        self.assertEqual(translation_edit_form['form-0-translation'].value, u'')
+
+        new_translation = u'Translatèd string'
+        translation_edit_form['form-0-translation'] = new_translation
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = welsh_file.get_polib_object()
+        self.assertEqual(pofile.find(msgid_to_edit).msgstr, new_translation)
+
+        # Now try editing a file they're not allowed to edit
+        spanish_file = TranslationFile.objects.get(language_code='es')
+        url = reverse('file_detail', args=(spanish_file.pk,))
+        response = self.app.get(url, user=self.normal_user, status=403)
+        self.assertEqual(response.status_code, 403)
+
+        # ..and make sure only the correct languages show up in the language list
+        url = reverse('language_list')
+        response = self.app.get(url, user=self.normal_user)
+        self.assertIn(_('Welsh'), response.text)
+        self.assertNotIn(_('Spanish'), response.text)
