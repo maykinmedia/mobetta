@@ -14,6 +14,7 @@ ProjectUserModel = get_user_model()
 
 class TranslationForm(forms.Form):
     msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
+    md5hash = forms.CharField(max_length=32, widget=forms.HiddenInput())
     translation = forms.CharField(widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False)
     old_translation = forms.CharField(widget=forms.HiddenInput(), required=False)
     fuzzy = forms.BooleanField(required=False)
@@ -52,6 +53,7 @@ class TranslationForm(forms.Form):
             if new_val != old_val:
                 changes.append({
                     'msgid': self.cleaned_data['msgid'],
+                    'md5hash': self.cleaned_data['md5hash'],
                     'field': fieldname,
                     'from': old_val,
                     'to': new_val,

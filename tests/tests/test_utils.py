@@ -19,7 +19,8 @@ class POFileTests(POFileTestCase):
         pofile = transfile.get_polib_object()
 
         msgid_to_change = u"String 1"
-        current_msgstr = pofile.find(msgid_to_change).msgstr
+        poentry = pofile.find(msgid_to_change)
+        current_msgstr = poentry.msgstr
         initial_value = u""
         self.assertEqual(current_msgstr, initial_value)
 
@@ -31,6 +32,7 @@ class POFileTests(POFileTestCase):
             (<form>, [
                 {
                 'msgid': <msgid>,
+                'md5hash': <hash>,
                 'field': '<field_name>',
                 'from': '<old_value>',
                 'to': '<new_value>',
@@ -46,6 +48,7 @@ class POFileTests(POFileTestCase):
             (None, [
                 {
                     'msgid': msgid_to_change, # Original message
+                    'md5hash': util.get_message_hash(poentry),
                     'field': 'translation', # Field to change
                     'from': initial_value,
                     'to': new_msgstr, # New string to use for that message

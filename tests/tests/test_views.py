@@ -106,6 +106,33 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         file_edits = self.transfile.edit_logs.all()
         self.assertEqual(file_edits.count(), 2)
 
+    def test_multiline_edit(self):
+        """
+        Edit the multi-line string in django.po.example.
+        """
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # The multiline string is the 5th one in the file.
+        msgid_to_edit = translation_edit_form['form-4-msgid'].value
+
+        # The new message has newlines and whitespace on both sides. Prevent this from
+        # being stripped off!
+        new_translation = u'Now with even\nmore\nlines\n(and tokens: %(start)s %(end)s %(count)s)'
+        translation_edit_form['form-4-translation'] = new_translation
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = self.transfile.get_polib_object()
+        self.assertEqual(pofile.find(msgid_to_edit).msgstr, new_translation)
+
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
+
     def test_simultaneous_edits_blocked(self):
         """
         Go to the file detail view as two different users. Make an edit as one of the

@@ -82,7 +82,8 @@
                             <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
                                 <td>
                                   {{ form.msgid }}
-                                  {{ form.msgid.value|highlight_tokens|safe }}
+                                  {{ form.md5hash }}
+                                  {{ form.msgid.value|highlight_tokens|safe|linebreaksbr }}
                                 </td>
                                 <td>
                                   {{ form.context.value|escape }}

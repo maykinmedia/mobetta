@@ -134,25 +134,25 @@ class FileDetailView(FormView):
         # Populate the old_<fieldname> values with the file's current translation/context
         pofile = self.translation_file.get_polib_object()
 
-        form_msgids = [
-            f.cleaned_data['msgid']
+        form_hashes = [
+            f.cleaned_data['md5hash']
             for f in form
         ]
 
         file_translations = {
-            poentry.msgid: {
+            util.get_message_hash(poentry): {
                 'translation': poentry.msgstr,
             }
 
             for poentry in [
-                e for e in pofile if e.msgid in form_msgids
+                e for e in pofile if util.get_message_hash(e) in form_hashes
             ]
         }
 
         for f in form:
             form_data = f.cleaned_data
             form_data.update({
-                'old_translation': file_translations[form_data['msgid']]['translation'],
+                'old_translation': file_translations[form_data['md5hash']]['translation'],
             })
             new_form_data = {
                 '{}-{}'.format(f.prefix, k) : form_data[k]
@@ -227,7 +227,8 @@ class FileDetailView(FormView):
                 'fuzzy': translation['fuzzy'],
                 'old_fuzzy': translation['fuzzy'],
                 'context': translation['context'],
-                'occurrences': translation['occurrences']
+                'occurrences': translation['occurrences'],
+                'md5hash': translation['md5hash'],
             }
             for translation in page
         ]
@@ -307,7 +308,8 @@ class FileDetailView(FormView):
                 'obsolete': entry.obsolete,
                 'fuzzy': util.message_is_fuzzy(entry),
                 'context': entry.msgctxt,
-                'occurrences': util.get_occurrences(entry)
+                'occurrences': util.get_occurrences(entry),
+                'md5hash': util.get_message_hash(entry),
             }
             for entry in entries
         ]
