@@ -1,12 +1,15 @@
 from django.test import TestCase
 
+from mobetta import util
 from mobetta.forms import TranslationForm
 
 class TranslationFormTests(TestCase):
 
     def test_clean_success_with_no_format_token(self):
+        msgid = "Nothing to format."
         form = TranslationForm({
-            'msgid': "Nothing to format.",
+            'msgid': msgid,
+            'md5hash': util.get_hash_from_msgid_context(msgid, None),
             'translation': "Rien a formater.",
             'fuzzy': False,
         })
@@ -14,16 +17,20 @@ class TranslationFormTests(TestCase):
         self.assertTrue(form.is_valid())
 
     def test_clean_success_with_py3_format_tokens_order_changed(self):
+        msgid = "Order is not really {important}, {ok}"
         form = TranslationForm({
-            'msgid': "Order is not really {important}, {ok}",
+            'msgid': msgid,
+            'md5hash': util.get_hash_from_msgid_context(msgid, None),
             'translation': "{ok}, l'ordre n'est pas tres {important}.",
             'fuzzy': False,
         })
         self.assertTrue(form.is_valid())
 
     def test_clean_success_with_py3_format_tokens_source_and_empty_translation(self):
+        msgid = "Order is not really {important}, {ok}"
         form = TranslationForm({
-            'msgid': "Order is not really {important}, {ok}",
+            'msgid': msgid,
+            'md5hash': util.get_hash_from_msgid_context(msgid, None),
             'translation': "",
             'fuzzy': False,
         })

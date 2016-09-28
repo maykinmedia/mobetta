@@ -33,3 +33,13 @@ msgid "String 4"
 msgstr ""
 
 
+#: templates/client/jobs/job_assignment_list.tmpl:103
+#, python-format
+msgid ""
+"Showing %(start)s to\n"
+"                %(end)s of %(count)s entries.\n"
+"              "
+msgstr ""
+"Showing %(start)s to\n"
+"%(end)s of %(count)s entries."
+

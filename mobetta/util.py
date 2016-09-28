@@ -3,9 +3,33 @@ import django
 import inspect
 import unicodedata
 import datetime
+import six
+import hashlib
 
 from django.conf import settings
 from django.utils import timezone
+
+
+def fix_newlines(inval, outval):
+    """
+    Fixes submitted translations by filtering carriage returns and pairing
+    newlines at the begging and end of the translated string with the original
+    """
+    if 0 == len(inval) or 0 == len(outval):
+        return outval
+
+    if "\r" in outval and "\r" not in inval:
+        outval = outval.replace("\r", '')
+
+    if "\n" == inval[0] and "\n" != outval[0]:
+        outval = "\n" + outval
+    elif "\n" != inval[0] and "\n" == outval[0]:
+        outval = outval.lstrip()
+    if "\n" == inval[-1] and "\n" != outval[-1]:
+        outval = outval + "\n"
+    elif "\n" != inval[-1] and "\n" == outval[-1]:
+        outval = outval.rstrip()
+    return outval
 
 
 def get_token_regexes():
@@ -14,6 +38,7 @@ def get_token_regexes():
         r'(?:%\([^\)]*\))', # Python2 format tokens
         r'(?:\{{2}[^\}\n]*\}{2})', # Django template variables
     ]
+
 
 def get_version():
     """
@@ -92,13 +117,18 @@ def update_translations(pofile, form_changes):
 
     for form, changes in form_changes:
         for change in changes:
-            entry = pofile.find(change['msgid'])
+            entry = None
+
+            for poentry in pofile:
+                if get_message_hash(poentry) == change['md5hash']:
+                    entry = poentry
+                    break
 
             if entry:
                 # Check that the 'from' attr is the same as the current content
                 if change['field'] == 'translation':
-                    if entry.msgstr == change['from']:
-                        entry.msgstr = change['to']
+                    if entry.msgstr == change['from'] or entry.msgstr == change['from'].replace('\r',''):
+                        entry.msgstr = fix_newlines(entry.msgid, change['to'])
                         applied_changes.append((form, change))
                     else:
                         change.update({
@@ -267,3 +297,14 @@ def get_automated_translation(translator, original_string, language_code):
 def get_automated_translations(translator, strings_to_translate, language_code):
     result = translator.translate_array(strings_to_translate, language_code)
     return dict(zip(strings_to_translate, [ t['TranslatedText'] for t in result ]))
+
+
+def get_hash_from_msgid_context(msgid, msgctxt):
+    return hashlib.md5(
+        (six.text_type(msgid) +
+            six.text_type(msgctxt or "")).encode('utf8')
+    ).hexdigest()
+
+
+def get_message_hash(entry):
+    return get_hash_from_msgid_context(entry.msgid, entry.msgctxt)
