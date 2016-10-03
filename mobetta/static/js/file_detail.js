@@ -63,7 +63,7 @@ function FileDetailView() {
     /*
      * Open up the comment list modal.
      */
-    this.openViewCommentsModal = function(msgid, data) {
+    this.openViewCommentsModal = function(msgid, msghash, data) {
         // Populate msgid header
         var comment_msgid = this.$view_comments_modal.find('.comment-msgid');
         comment_msgid.empty();
@@ -92,7 +92,7 @@ function FileDetailView() {
     };
 
 
-    this.openAddCommentModal = function(file_pk, msgid, formprefix) {
+    this.openAddCommentModal = function(file_pk, msgid, msghash, formprefix) {
         // Clear the message body
         var body_input = this.$add_comment_modal.find('textarea[name="body"]')
         body_input.val('');
@@ -100,10 +100,10 @@ function FileDetailView() {
         // Add the form prefix to the form data
         this.$add_comment_modal.find('.comment-form').data('form-prefix', formprefix);
 
-        // Populate the hidden fields with file_pk and msgid
-        var msgidfield = this.$add_comment_modal.find('input[name="msgid"]');
+        // Populate the hidden fields with file_pk and msghash
+        var msghashfield = this.$add_comment_modal.find('input[name="msghash"]');
 
-        msgidfield.val(msgid);
+        msghashfield.val(msghash);
 
         this.$add_comment_modal.show();
     };
@@ -138,10 +138,11 @@ function FileDetailView() {
     this.setUpOneAddCommentButton = function(i, btn) {
         var file_pk = $(btn).data('filepk');
         var msgid = $(btn).data('msgid');
+        var msghash = $(btn).data('msghash');
         var formprefix = $(btn).data('form-prefix');
 
         $(btn).on('click', $.proxy(function(e) {
-            this.openAddCommentModal(file_pk, msgid, formprefix);
+            this.openAddCommentModal(file_pk, msgid, msghash, formprefix);
         }, this));
     };
 
@@ -152,12 +153,12 @@ function FileDetailView() {
         this.$add_comment_buttons.each($.proxy(this.setUpOneAddCommentButton, this));
     };
 
-    this.fetchComments = function(url, msgid) {
+    this.fetchComments = function(url, msgid, msghash) {
         $.ajax({
             url: url,
             type: 'GET',
             success: $.proxy(function(data) {
-                this.openViewCommentsModal(msgid, data);
+                this.openViewCommentsModal(msgid, msghash, data);
             }, this),
             error: $.proxy(function(data) {
                 console.log("Error!");
@@ -171,9 +172,10 @@ function FileDetailView() {
      */
     this.setUpOneViewCommentsButton = function(i, btn) {
         var url = $(btn).data('url');
+        var msghash = $(btn).data('msghash');
         var msgid = $(btn).data('msgid');
 
-        $(btn).on('click', $.proxy(this.fetchComments, this, url, msgid));
+        $(btn).on('click', $.proxy(this.fetchComments, this, url, msgid, msghash));
     };
 
     /*
@@ -195,7 +197,6 @@ function FileDetailView() {
             url: url,
             type: 'GET',
             success: $.proxy(function(data) {
-                console.log(data['suggestion']);
                 var suggestion_span = $('#id_'+formprefix+'-auto-suggestion')
                 suggestion_span.empty();
                 suggestion_span.append(data['suggestion']);
