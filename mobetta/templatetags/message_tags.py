@@ -10,17 +10,17 @@ register = template.Library()
 
 
 @register.inclusion_tag('mobetta/include/_last_msg_edit.html')
-def last_edit(transfile, msgid):
+def last_edit(transfile, msghash):
     """
-    Return the last EditLog instance for this msgid for this file.
+    Return the last EditLog instance for this msghash for this file.
 
     ``transfile`` - the `TranslationFile` object to get the log for.
-    ``msgid`` - the message ID (original message) to find the log for.
+    ``msghash`` - the md5 hash of the msgid and msgctxt to find the log for.
     """
     try:
         logentry = EditLog.objects.filter(
             file_edited=transfile,
-            msgid=msgid
+            msghash=msghash
         ).order_by('-created').first()
     except EditLog.DoesNotExist:
         logentry = None
@@ -31,10 +31,10 @@ def last_edit(transfile, msgid):
 
 
 @register.simple_tag
-def comment_count(transfile, msgid):
+def comment_count(transfile, msghash):
     return MessageComment.objects.filter(
         translation_file=transfile,
-        msgid=msgid
+        msghash=msghash
     ).count()
 
 

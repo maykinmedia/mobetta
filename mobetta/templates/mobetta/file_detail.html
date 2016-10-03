@@ -101,7 +101,7 @@
                                   {{ form.occurrences.value|safe }}
                                 </td>
                                 <td>
-                                  {% last_edit file form.msgid.value %}
+                                  {% last_edit file form.md5hash.value %}
                                 </td>
                                 {% if show_suggestions %}
                                   <td>
@@ -111,7 +111,7 @@
                                   </td>
                                 {% endif %}
                                 <td>
-                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.msgid.value %}</span> comments
+                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
                                   <button type="button" class="add-comment" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
                                     {% trans "Add comment" %}
                                   </button>

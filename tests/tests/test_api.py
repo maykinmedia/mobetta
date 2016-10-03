@@ -15,6 +15,7 @@ from django.utils.translation import ugettext as _
 from rest_framework.test import APIClient
 
 from mobetta.models import TranslationFile
+from mobetta.util import get_hash_from_msgid_context
 
 from .utils import POFileTestCase
 from .factories import AdminFactory, MessageCommentFactory, UserFactory
@@ -35,8 +36,11 @@ class MessageCommentAPITests(POFileTestCase):
 
         client.force_authenticate(user=self.admin_user)
 
+        msgid = u"String 1"
+        msghash = get_hash_from_msgid_context(msgid, '')
+
         postdata = {
-            'msgid': u"String 1",
+            'msghash': msghash,
             'translation_file': self.transfile.pk,
             'body': u"Test comment",
         }
@@ -44,7 +48,7 @@ class MessageCommentAPITests(POFileTestCase):
         response = client.post(reverse('api:messagecomment-list'), postdata, format='json')
 
         self.assertEqual(response.status_code, 201) # 'Created'
-        self.assertEqual(response.data['msgid'], u"String 1")
+        self.assertEqual(response.data['msghash'], msghash)
         self.assertEqual(response.data['translation_file'], self.transfile.pk)
         self.assertEqual(response.data['body'], u"Test comment")
         self.assertEqual(response.data['comment_count'], 1)
@@ -58,8 +62,11 @@ class MessageCommentAPITests(POFileTestCase):
 
         client.force_authenticate(user=self.admin_user)
 
+        msgid = u"String 1"
+        msghash = get_hash_from_msgid_context(msgid, '')
+
         postdata = {
-            'msgid': u"String 1",
+            'msghash': msghash,
             'translation_file': self.transfile.pk,
             'body': u"",
         }
@@ -80,8 +87,11 @@ class MessageCommentAPITests(POFileTestCase):
 
         client.force_authenticate(user=non_translator_user)
 
+        msgid = u"String 1"
+        msghash = get_hash_from_msgid_context(msgid, '')
+
         postdata = {
-            'msgid': u"String 1",
+            'msghash': msghash,
             'translation_file': self.transfile.pk,
             'body': u"",
         }
@@ -94,21 +104,27 @@ class MessageCommentAPITests(POFileTestCase):
         """
         Test how we fetch comments for a particular msgid/file combination.
         """
+        msgid1 = u"String 1"
+        msghash1 = get_hash_from_msgid_context(msgid1, '')
+
+        msgid2 = u"String 2"
+        msghash2 = get_hash_from_msgid_context(msgid2, '')
+
         comment1 = MessageCommentFactory.create(
             translation_file=self.transfile,
-            msgid=u"String 1",
+            msghash=msghash1,
             body=u"First comment",
         )
 
         comment2 = MessageCommentFactory.create(
             translation_file=self.transfile,
-            msgid=u"String 1",
+            msghash=msghash1,
             body=u"Second comment",
         )
 
         comment3 = MessageCommentFactory.create(
             translation_file=self.transfile,
-            msgid=u"String 2",
+            msghash=msghash2,
             body=u"Third comment",
         )
 
@@ -124,7 +140,7 @@ class MessageCommentAPITests(POFileTestCase):
             reverse('api:messagecomment-list'),
             urlencode({
                 'translation_file': self.transfile.pk,
-                'msgid': u"String 1"
+                'msghash': msghash1,
             })
         )
 
@@ -132,10 +148,10 @@ class MessageCommentAPITests(POFileTestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['msgid'], u"String 1")
+        self.assertEqual(response.data[0]['msghash'], msghash1)
         self.assertEqual(response.data[0]['body'], u"First comment")
         self.assertEqual(response.data[0]['translation_file'], 1)
-        self.assertEqual(response.data[1]['msgid'], u"String 1")
+        self.assertEqual(response.data[1]['msghash'], msghash1)
         self.assertEqual(response.data[1]['body'], u"Second comment")
         self.assertEqual(response.data[1]['translation_file'], 1)
 
@@ -149,11 +165,14 @@ class MessageCommentAPITests(POFileTestCase):
 
         client.force_authenticate(user=non_translator_user)
 
+        msgid = u"String 1"
+        msghash = get_hash_from_msgid_context(msgid, '')
+
         url = "{}?{}".format(
             reverse('api:messagecomment-list'),
             urlencode({
                 'translation_file': self.transfile.pk,
-                'msgid': u"String 1"
+                'msghash': msghash,
             })
         )
 

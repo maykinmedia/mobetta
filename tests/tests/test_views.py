@@ -14,6 +14,7 @@ from .factories import AdminFactory, EditLogFactory, UserFactory, TranslationFil
 from .utils import POFileTestCase, MultiplePOFilesTestCase
 
 from mobetta.models import TranslationFile
+from mobetta.util import get_hash_from_msgid_context
 
 from django_webtest import WebTest
 
@@ -55,6 +56,7 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         # First string: u'String 1' -> u''
         msgid_to_edit = translation_edit_form['form-0-msgid'].value
+        msghash_to_edit = get_hash_from_msgid_context(msgid_to_edit, '')
         self.assertEqual(translation_edit_form['form-0-translation'].value, u'')
 
         new_translation = u'Translatèd string'
@@ -71,7 +73,7 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(file_edits.count(), 1)
 
         only_file_edit = file_edits.first()
-        self.assertEqual(only_file_edit.msgid, msgid_to_edit)
+        self.assertEqual(only_file_edit.msghash, msghash_to_edit)
         self.assertEqual(only_file_edit.new_value, new_translation)
 
     def test_multiple_edits(self):
@@ -580,9 +582,18 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
         self.assertIn('Crazy', values[2].contents[0])
 
     def test_can_order_by_msgid_desc(self):
-        EditLogFactory.create(msgid='Awesome', file_edited=self.transfile)
-        EditLogFactory.create(msgid='Boring', file_edited=self.transfile)
-        EditLogFactory.create(msgid='Crazy', file_edited=self.transfile)
+        msgid1 = 'Awesome'
+        msghash1 = get_hash_from_msgid_context(msgid1, '')
+
+        msgid2 = 'Boring'
+        msghash2 = get_hash_from_msgid_context(msgid2, '')
+
+        msgid3 = 'Crazy'
+        msghash3 = get_hash_from_msgid_context(msgid3, '')
+
+        EditLogFactory.create(msghash=msghash1, file_edited=self.transfile)
+        EditLogFactory.create(msghash=msghash2, file_edited=self.transfile)
+        EditLogFactory.create(msghash=msghash3, file_edited=self.transfile)
 
         response = self.app.get(
             self.url + '?order_by=-msgid',

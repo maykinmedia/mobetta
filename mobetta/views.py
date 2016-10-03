@@ -192,7 +192,7 @@ class FileDetailView(FormView):
                         EditLog.objects.create(
                             user=self.request.user,
                             file_edited=self.translation_file,
-                            msgid=change['msgid'],
+                            msghash=change['md5hash'],
                             fieldname=change['field'],
                             old_value=change['from'],
                             new_value=change['to'],

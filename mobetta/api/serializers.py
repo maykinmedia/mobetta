@@ -17,7 +17,7 @@ class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = MessageComment
-        fields = ('msgid', 'translation_file', 'body', 'created', 'comment_count', 'user_name')
+        fields = ('msghash', 'translation_file', 'body', 'created', 'comment_count', 'user_name')
 
     def create(self, validated_data):
         current_user = self.context['request'].user
@@ -25,7 +25,7 @@ class MessageCommentSerializer(serializers.HyperlinkedModelSerializer):
 
     def get_comment_count(self, instance):
         return MessageComment.objects.filter(
-            msgid=instance.msgid,
+            msghash=instance.msghash,
             translation_file=instance.translation_file,
         ).count()
 

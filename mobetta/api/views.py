@@ -34,10 +34,10 @@ class MessageCommentViewSet(viewsets.ModelViewSet):
         if file_pk is not None:
             queryset = queryset.filter(translation_file__pk=file_pk)
 
-        msgid = self.request.query_params.get('msgid', None)
+        msghash = self.request.query_params.get('msghash', None)
 
-        if msgid is not None:
-            queryset = queryset.filter(msgid=msgid)
+        if msghash is not None:
+            queryset = queryset.filter(msghash=msghash)
 
         return queryset
 

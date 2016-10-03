@@ -59,7 +59,12 @@ class EditLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(UserModel)
     file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
-    msgid = models.CharField(max_length=127, null=False)
+
+    msghash = models.CharField(max_length=32, null=False, blank=False)
+    """
+    ``msghash`` is an md5 hash of the msgid and msgctxt, using util.get_hash_from_msgid_context.
+    """
+
     fieldname = models.CharField(max_length=127, blank=False, null=False)
     old_value = models.CharField(max_length=255, blank=True, null=True)
     new_value = models.CharField(max_length=255, blank=True, null=True)
@@ -82,7 +87,12 @@ class MessageComment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(UserModel)
     translation_file = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='comments')
-    msgid = models.CharField(max_length=127, null=False)
+
+    msghash = models.CharField(max_length=32, null=False, blank=False)
+    """
+    ``msghash`` is an md5 hash of the msgid and msgctxt, using util.get_hash_from_msgid_context.
+    """
+
     body = models.CharField(max_length=1024, blank=False, null=False)
 
     class Meta:
@@ -91,7 +101,7 @@ class MessageComment(models.Model):
     def __unicode__(self):
         return u"Comment by {} on \"{}\" ({}) at {}".format(
             str(self.user),
-            self.msgid,
+            self.msghash,
             self.translation_file.language_code,
             self.created.strftime('%d-%m-%Y')
         )
