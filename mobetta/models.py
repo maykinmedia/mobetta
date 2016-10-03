@@ -59,6 +59,7 @@ class EditLog(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(UserModel)
     file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
+    msgid = models.CharField(max_length=256, null=False)
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
     """

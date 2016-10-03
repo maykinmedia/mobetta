@@ -343,7 +343,7 @@ class EditHistoryView(ListView):
         order_fields = {
             'time': 'created',
             'user': 'user',
-            'msgid': 'msgid',
+            'msghash': 'msghash',
             'fieldname': 'fieldname',
             'old_value': 'old_value',
             'new_value': 'new_value',

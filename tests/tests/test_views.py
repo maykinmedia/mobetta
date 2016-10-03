@@ -582,18 +582,9 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
         self.assertIn('Crazy', values[2].contents[0])
 
     def test_can_order_by_msgid_desc(self):
-        msgid1 = 'Awesome'
-        msghash1 = get_hash_from_msgid_context(msgid1, '')
-
-        msgid2 = 'Boring'
-        msghash2 = get_hash_from_msgid_context(msgid2, '')
-
-        msgid3 = 'Crazy'
-        msghash3 = get_hash_from_msgid_context(msgid3, '')
-
-        EditLogFactory.create(msghash=msghash1, file_edited=self.transfile)
-        EditLogFactory.create(msghash=msghash2, file_edited=self.transfile)
-        EditLogFactory.create(msghash=msghash3, file_edited=self.transfile)
+        EditLogFactory.create(msgid='Awesome', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Boring', file_edited=self.transfile)
+        EditLogFactory.create(msgid='Crazy', file_edited=self.transfile)
 
         response = self.app.get(
             self.url + '?order_by=-msgid',

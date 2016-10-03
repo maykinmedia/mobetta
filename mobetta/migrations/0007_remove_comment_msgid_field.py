@@ -12,11 +12,12 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name='editlog',
-            name='msgid',
-        ),
-        migrations.RemoveField(
             model_name='messagecomment',
             name='msgid',
+        ),
+        migrations.AlterField(
+            model_name='editlog',
+            name='msgid',
+            field=models.CharField(max_length=256),
         ),
     ]
