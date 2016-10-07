@@ -101,7 +101,7 @@
                                   {{ form.occurrences.value|safe }}
                                 </td>
                                 <td>
-                                  {% last_edit file form.msgid.value %}
+                                  {% last_edit file form.md5hash.value %}
                                 </td>
                                 {% if show_suggestions %}
                                   <td>
@@ -111,11 +111,11 @@
                                   </td>
                                 {% endif %}
                                 <td>
-                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.msgid.value %}</span> comments
-                                  <button type="button" class="add-comment" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
+                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
+                                  <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
                                     {% trans "Add comment" %}
                                   </button>
-                                  <button type="button" class="view-comments" data-msgid="{{ form.msgid.value }}" data-url="{% url 'api:messagecomment-list' %}?translation_file={{ file.pk }}&msgid={{ form.msgid.value|iriencode }}">
+                                  <button type="button" class="view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
                                     {% trans "View comments" %}
                                   </button>
                                 </td>
@@ -146,7 +146,7 @@
                 <form class="comment-form" data-submiturl="{% url 'api:messagecomment-list' %}" data-form-prefix="">
                     {% csrf_token %}
                     {{ comment_form.translation_file }}
-                    {{ comment_form.msgid }}
+                    {{ comment_form.msghash }}
                     {{ comment_form.body }}
                     <p><span class="errorlist" ></span></p>
                     <button>Submit</button>

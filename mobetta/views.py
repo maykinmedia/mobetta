@@ -192,6 +192,7 @@ class FileDetailView(FormView):
                         EditLog.objects.create(
                             user=self.request.user,
                             file_edited=self.translation_file,
+                            msghash=change['md5hash'],
                             msgid=change['msgid'],
                             fieldname=change['field'],
                             old_value=change['from'],
@@ -344,6 +345,7 @@ class EditHistoryView(ListView):
             'time': 'created',
             'user': 'user',
             'msgid': 'msgid',
+            'msghash': 'msghash',
             'fieldname': 'fieldname',
             'old_value': 'old_value',
             'new_value': 'new_value',

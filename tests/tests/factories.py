@@ -2,8 +2,10 @@ from django.contrib.auth.models import User
 
 from mobetta.models import EditLog, TranslationFile, MessageComment
 
-from factory import DjangoModelFactory, SubFactory
+from factory import DjangoModelFactory, SubFactory, fuzzy
 
+
+hex_chars = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
 
 class UserFactory(DjangoModelFactory):
 
@@ -34,7 +36,7 @@ class TranslationFileFactory(DjangoModelFactory):
 class EditLogFactory(DjangoModelFactory):
     user = SubFactory(AdminFactory)
     file_edited = SubFactory(TranslationFileFactory)
-    msgid = 'default_msgid'
+    msghash = fuzzy.FuzzyText(length=32, chars=hex_chars)
     fieldname = 'default_fieldname'
     old_value = 'default_old_value'
     new_value = 'default_new_value'
@@ -46,7 +48,7 @@ class EditLogFactory(DjangoModelFactory):
 class MessageCommentFactory(DjangoModelFactory):
     user = SubFactory(AdminFactory)
     translation_file = SubFactory(TranslationFileFactory)
-    msgid = 'default_msgid'
+    msghash = fuzzy.FuzzyText(length=32, chars=hex_chars)
     body = 'Default message body'
 
     class Meta:

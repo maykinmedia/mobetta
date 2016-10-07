@@ -64,12 +64,12 @@ class TranslationForm(forms.Form):
 
 class CommentForm(forms.ModelForm):
     translation_file = forms.ModelChoiceField(queryset=TranslationFile.objects.all(), widget=forms.HiddenInput())
-    msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
+    msghash = forms.CharField(max_length=32, widget=forms.HiddenInput())
     body = forms.CharField(widget=forms.Textarea(attrs={'cols': '120', 'rows': '8'}))
 
     class Meta:
         model = MessageComment
-        fields = ['translation_file', 'msgid', 'body']
+        fields = ['translation_file', 'msghash', 'body']
 
 
 class AddTranslatorForm(forms.Form):
