@@ -193,6 +193,7 @@ class FileDetailView(FormView):
                             user=self.request.user,
                             file_edited=self.translation_file,
                             msghash=change['md5hash'],
+                            msgid=change['msgid'],
                             fieldname=change['field'],
                             old_value=change['from'],
                             new_value=change['to'],
@@ -343,6 +344,7 @@ class EditHistoryView(ListView):
         order_fields = {
             'time': 'created',
             'user': 'user',
+            'msgid': 'msgid',
             'msghash': 'msghash',
             'fieldname': 'fieldname',
             'old_value': 'old_value',

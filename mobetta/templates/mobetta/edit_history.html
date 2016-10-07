@@ -35,6 +35,11 @@
                 <a href="?order_by=msghash">&#9650;</a>
             </th>
             <th>
+                {% trans "Message ID" %}
+                <a href="?order_by=-msgid">&#9660;</a>
+                <a href="?order_by=msgid">&#9650;</a>
+            </th>
+            <th>
                 {% trans "Field" %}
                 <a href="?order_by=-fieldname">&#9660;</a>
                 <a href="?order_by=fieldname">&#9650;</a>
@@ -57,6 +62,7 @@
             <td>{{ edit.created }}</td>
             <td>{{ edit.user }}</td>
             <td>{{ edit.msghash }}</td>
+            <td>{{ edit.msgid }}</td>
             <td>{{ edit.fieldname }}</td>
             <td>{{ edit.old_value }}</td>
             <td>{{ edit.new_value }}</td>
