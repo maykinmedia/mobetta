@@ -44,7 +44,7 @@ def get_version():
     """
     TODO: Probably use a config file for this.
     """
-    return u"0.0.1"
+    return u"0.0.2"
 
 
 def message_is_fuzzy(message):
