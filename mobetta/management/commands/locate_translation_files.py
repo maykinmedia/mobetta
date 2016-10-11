@@ -10,13 +10,12 @@ from mobetta.util import find_pofiles, app_name_from_filepath
 class Command(BaseCommand):
     help = ("Send SMS notifications to workers for tomorrow's assignments")
 
-    option_list = BaseCommand.option_list + (
-        make_option('--include-third-party',
+    def add_arguments(self, parser):
+         parser.add_argument('--include-third-party',
             action='store_true',
             help='Detect translation files for third-party apps',
             dest='include_third_party',
-            default=False),
-    )
+            default=False)
 
     def handle(self, *args, **options):
         """
