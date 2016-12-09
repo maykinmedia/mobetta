@@ -8,17 +8,16 @@ try:
 except ImportError:
     import mock
 
-from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.test import TestCase
 from django.utils.translation import ugettext as _
 
 from rest_framework.test import APIClient
 
-from mobetta.models import TranslationFile
 from mobetta.util import get_hash_from_msgid_context
 
-from .utils import POFileTestCase
 from .factories import AdminFactory, MessageCommentFactory, UserFactory
+from .utils import POFileTestCase
 
 
 class MessageCommentAPITests(POFileTestCase):
@@ -45,9 +44,9 @@ class MessageCommentAPITests(POFileTestCase):
             'body': u"Test comment",
         }
 
-        response = client.post(reverse('api:messagecomment-list'), postdata, format='json')
+        response = client.post(reverse('mobetta:api:messagecomment-list'), postdata, format='json')
 
-        self.assertEqual(response.status_code, 201) # 'Created'
+        self.assertEqual(response.status_code, 201)  # 'Created'
         self.assertEqual(response.data['msghash'], msghash)
         self.assertEqual(response.data['translation_file'], self.transfile.pk)
         self.assertEqual(response.data['body'], u"Test comment")
@@ -71,7 +70,7 @@ class MessageCommentAPITests(POFileTestCase):
             'body': u"",
         }
 
-        response = client.post(reverse('api:messagecomment-list'), postdata, format='json')
+        response = client.post(reverse('mobetta:api:messagecomment-list'), postdata, format='json')
 
         self.assertEqual(response.status_code, 400)
 
@@ -96,7 +95,7 @@ class MessageCommentAPITests(POFileTestCase):
             'body': u"",
         }
 
-        response = client.post(reverse('api:messagecomment-list'), postdata, format='json')
+        response = client.post(reverse('mobetta:api:messagecomment-list'), postdata, format='json')
 
         self.assertEqual(response.status_code, 403)
 
@@ -110,25 +109,25 @@ class MessageCommentAPITests(POFileTestCase):
         msgid2 = u"String 2"
         msghash2 = get_hash_from_msgid_context(msgid2, '')
 
-        comment1 = MessageCommentFactory.create(
+        MessageCommentFactory.create(
             translation_file=self.transfile,
             msghash=msghash1,
             body=u"First comment",
         )
 
-        comment2 = MessageCommentFactory.create(
+        MessageCommentFactory.create(
             translation_file=self.transfile,
             msghash=msghash1,
             body=u"Second comment",
         )
 
-        comment3 = MessageCommentFactory.create(
+        MessageCommentFactory.create(
             translation_file=self.transfile,
             msghash=msghash2,
             body=u"Third comment",
         )
 
-        comment4 = MessageCommentFactory.create(
+        MessageCommentFactory.create(
             body=u"Other file comment"
         )
 
@@ -137,7 +136,7 @@ class MessageCommentAPITests(POFileTestCase):
         client.force_authenticate(user=self.admin_user)
 
         url = "{}?{}".format(
-            reverse('api:messagecomment-list'),
+            reverse('mobetta:api:messagecomment-list'),
             urlencode({
                 'translation_file': self.transfile.pk,
                 'msghash': msghash1,
@@ -169,7 +168,7 @@ class MessageCommentAPITests(POFileTestCase):
         msghash = get_hash_from_msgid_context(msgid, '')
 
         url = "{}?{}".format(
-            reverse('api:messagecomment-list'),
+            reverse('mobetta:api:messagecomment-list'),
             urlencode({
                 'translation_file': self.transfile.pk,
                 'msghash': msghash,
@@ -199,7 +198,7 @@ class TranslationSuggestionAPITests(TestCase):
         client.force_authenticate(user=self.admin_user)
 
         url = "{}?{}".format(
-            reverse('api:translation_suggestion'),
+            reverse('mobetta:api:translation_suggestion'),
             urlencode({
                 'msgid': u"String to translate",
                 'language_code': 'nl',
@@ -226,7 +225,7 @@ class TranslationSuggestionAPITests(TestCase):
         client.force_authenticate(user=non_admin_user)
 
         url = "{}?{}".format(
-            reverse('api:translation_suggestion'),
+            reverse('mobetta:api:translation_suggestion'),
             urlencode({
                 'msgid': u"String to translate",
                 'language_code': 'nl',

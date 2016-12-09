@@ -1,7 +1,8 @@
 # coding=utf8
 
+from django.template import Context, Template
 from django.test import TestCase
-from django.template import Template, Context
+
 
 class MessageTagTests(TestCase):
 

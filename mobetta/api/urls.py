@@ -1,9 +1,8 @@
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
 from rest_framework import routers
 
 from mobetta.api import views
-
 
 router = routers.DefaultRouter()
 router.register(r'files', views.TranslationFileViewSet)

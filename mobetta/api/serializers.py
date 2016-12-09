@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from mobetta.models import TranslationFile, MessageComment
+from mobetta.models import MessageComment, TranslationFile
 
 
 class TranslationFileSerializer(serializers.HyperlinkedModelSerializer):

@@ -1,11 +1,13 @@
 from rest_framework import viewsets
-from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from mobetta import util
-from mobetta.models import TranslationFile, MessageComment
-from mobetta.api.serializers import TranslationFileSerializer, MessageCommentSerializer
 from mobetta.api.permissions import CanTranslatePermission
+from mobetta.api.serializers import (
+    MessageCommentSerializer, TranslationFileSerializer
+)
+from mobetta.models import MessageComment, TranslationFile
 
 
 class TranslationFileViewSet(viewsets.ModelViewSet):

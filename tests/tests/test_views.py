@@ -1,22 +1,18 @@
 # coding=utf8
 from datetime import datetime
 from decimal import Decimal
-import os, shutil
 
 from django.conf import settings
-from django.core.management import call_command
 from django.core.urlresolvers import reverse
-from django.http import HttpRequest
 from django.utils.translation import ugettext as _
-from django.test import TestCase
 
-from .factories import AdminFactory, EditLogFactory, UserFactory, TranslationFileFactory
-from .utils import POFileTestCase, MultiplePOFilesTestCase
+from django_webtest import WebTest
 
 from mobetta.models import TranslationFile
 from mobetta.util import get_hash_from_msgid_context
 
-from django_webtest import WebTest
+from .factories import AdminFactory, EditLogFactory, UserFactory
+from .utils import MultiplePOFilesTestCase, POFileTestCase
 
 
 def get_field_prefix(form, field_name, value):
@@ -29,9 +25,7 @@ def get_field_prefix(form, field_name, value):
     """
     field = next(
         (field for field in form.fields
-            if (field is not None) and (field_name in field) and (form[field].value == value))
-        , None
-    )
+         if (field is not None) and (field_name in field) and (form[field].value == value)), None)
 
     return '-'.join(field.split('-')[:2]) if field else None
 
@@ -42,7 +36,7 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         super(FileDetailViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
-        self.url = reverse('file_detail', args=(self.transfile.pk,))
+        self.url = reverse('mobetta:file_detail', args=(self.transfile.pk,))
 
     def test_single_edit(self):
         """
@@ -169,10 +163,8 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(second_user_edit_form[trans_field_id_to_edit].value, trans_for_edit)
         second_user_edit_form[trans_field_id_to_edit] = u"Second user translation"
         second_user_response = second_user_edit_form.submit()
-        expected_err_msg = _("The %s for \"%s\" was edited while you were editing it") \
-                            % ("translation", msgid_for_edit)
-        expected_err_msg = _("This value was edited while you were editing it (new value: %s)") \
-                            % (first_user_new_translation)
+        expected_err_msg = _("This value was edited while you were editing it "
+                             "(new value: %s)") % first_user_new_translation
         self.assertIn(expected_err_msg, second_user_response.text)
 
         # The old_translation in the form should now reflect the first user's translation
@@ -288,9 +280,6 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<li class="success">Changed 1 translations</li>')
 
-        #form = response.forms['translation-edit']
-        #self.assertTrue(form[prefix + '-fuzzy'])
-
     def test_success_to_change_several_fuzzy_fields(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.')
         self.create_poentry(u'An other {important} token', u'Un autre token {important}.')
@@ -309,10 +298,6 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<li class="success">Changed 2 translations</li>')
 
-        #form = response.forms['translation-edit']
-        #self.assertTrue(form[prefix1 + '-fuzzy'])
-        #self.assertTrue(form[prefix2 + '-fuzzy'])
-
     def test_success_to_change_one_translation_field(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.')
 
@@ -326,9 +311,6 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<li class="success">Changed 1 translations</li>')
-
-        #form = response.forms['translation-edit']
-        #self.assertEqual(form[prefix1 + '-translation'].value, 'Un token tres {important}.')
 
     def test_success_to_change_several_translation_field(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.')
@@ -347,10 +329,6 @@ class FileDetailViewTests(POFileTestCase, WebTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<li class="success">Changed 2 translations</li>')
-
-        #form = response.forms['translation-edit']
-        #self.assertEqual(form[prefix1 + '-translation'].value, 'Un token tres {important}.')
-        #self.assertEqual(form[prefix2 + '-translation'].value, 'Un autre token tres {important}.')
 
     def test_display_message_if_no_translation_have_been_changed(self):
         self.create_poentry(u'An {important} token', u'Un token {important}.')
@@ -386,32 +364,32 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(response.status_code, 200)
 
         form = response.forms['translation-search']
-        form['search_tags'] = "comment" # search should be case-insensitive
+        form['search_tags'] = "comment"  # search should be case-insensitive
 
         response = form.submit()
-        self.assertContains(response, "String 3 with comment") # The message ID searched for
+        self.assertContains(response, "String 3 with comment")  # The message ID searched for
 
     def test_search_on_msgstr(self):
         response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         form = response.forms['translation-search']
-        form['search_tags'] = "translation" # search should be case-insensitive
+        form['search_tags'] = "translation"  # search should be case-insensitive
 
         response = form.submit()
-        self.assertContains(response, "String 2") # The message ID associated with the context result
-        self.assertContains(response, "Translation of string 2") # The message string we searched for
+        self.assertContains(response, "String 2")  # The message ID associated with the context result
+        self.assertContains(response, "Translation of string 2")  # The message string we searched for
 
     def test_search_on_context(self):
         response = self.app.get(self.url, user=self.admin_user)
         self.assertEqual(response.status_code, 200)
 
         form = response.forms['translation-search']
-        form['search_tags'] = "context" # search should be case-insensitive
+        form['search_tags'] = "context"  # search should be case-insensitive
 
         response = form.submit()
-        self.assertContains(response, "Context hint") # The context hint we searched for
-        self.assertContains(response, "String 4") # The message string associated with the context result
+        self.assertContains(response, "Context hint")  # The context hint we searched for
+        self.assertContains(response, "String 4")  # The message string associated with the context result
 
 
 class FileListViewTests(POFileTestCase, WebTest):
@@ -422,7 +400,7 @@ class FileListViewTests(POFileTestCase, WebTest):
         super(FileListViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
-        self.url = reverse('file_list', kwargs={'lang_code': 'nl'})
+        self.url = reverse('mobetta:file_list', kwargs={'lang_code': 'nl'})
 
     def test_file_stats(self):
 
@@ -432,7 +410,8 @@ class FileListViewTests(POFileTestCase, WebTest):
         soup = response.html
         file_row = soup.find('tr', id="file_detail_{}".format(self.transfile.pk))
 
-        col_titles = ['appname', 'percent_translated', 'total_messages', 'translated', 'fuzzy', 'obsolete', 'filename', 'created']
+        col_titles = ['appname', 'percent_translated', 'total_messages',
+                      'translated', 'fuzzy', 'obsolete', 'filename', 'created']
 
         stats_cells = file_row.find_all('td', recursive=False)
         stats_results = dict(zip(col_titles, [cell.text for cell in list(stats_cells)]))
@@ -449,7 +428,7 @@ def get_column(response, column_name):
     """
     Return a list of BeautifulSoup <td> Tag for a given column name.
     """
-    #Tricky way of getting the number of the expected column in the table.
+    # Tricky way of getting the number of the expected column in the table.
     col_number = next(
         (i for i, tag in enumerate(response.html.thead.tr.find_all('th')) if column_name in str(tag)),
         None
@@ -457,7 +436,7 @@ def get_column(response, column_name):
 
     lines = response.html.tbody.find_all('tr')
 
-    return [ line.find_all('td')[col_number] for line in lines]
+    return [line.find_all('td')[col_number] for line in lines]
 
 
 class EditHistoryViewTests(POFileTestCase, WebTest):
@@ -466,7 +445,7 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
         super(EditHistoryViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
-        self.url = reverse('edit_history', args=(self.transfile.pk,))
+        self.url = reverse('mobetta:edit_history', args=(self.transfile.pk,))
 
     def test_get_access_if_authenticated(self):
         response = self.app.get(self.url, user=self.admin_user)
@@ -480,7 +459,7 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
     def test_can_order_by_time_asc(self):
         logs = EditLogFactory.create_batch(3, file_edited=self.transfile)
 
-        logs[0].created, logs[1].created, logs[2].created  = (
+        logs[0].created, logs[1].created, logs[2].created = (
             datetime(2016, 8, 1), datetime(2016, 8, 2), datetime(2016, 8, 3)
         )
 
@@ -502,7 +481,7 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
     def test_can_order_by_time_desc(self):
         logs = EditLogFactory.create_batch(3, file_edited=self.transfile)
 
-        logs[0].created, logs[1].created, logs[2].created  = (
+        logs[0].created, logs[1].created, logs[2].created = (
             datetime(2016, 8, 1), datetime(2016, 8, 2), datetime(2016, 8, 3)
         )
 
@@ -541,7 +520,6 @@ class EditHistoryViewTests(POFileTestCase, WebTest):
         self.assertIn('Adam', values[0].contents[0])
         self.assertIn('Barney', values[1].contents[0])
         self.assertIn('Cersei', values[2].contents[0])
-
 
     def test_can_order_by_user_desc(self):
         user1 = UserFactory.create(username='Adam')
@@ -711,12 +689,13 @@ class DownloadPOFileViewTests(POFileTestCase, WebTest):
     def test_fail_if_targeted_translation_file_does_not_exist(self):
         """
         response = self.app.get(
-            reverse('download', args=(666,)),
+            reverse('mobetta:download', args=(666,)),
             user=self.admin_user,
         )
 
         self.assertEqual(response.status_code, 404)
         """
+
     def test_succeed_to_download_po_file(self):
         pass
 
@@ -740,7 +719,7 @@ class TranslationAccessTests(MultiplePOFilesTestCase, WebTest):
         self.welsh_file = TranslationFile.objects.get(language_code='cy')
 
     def test_unauthorised_access(self):
-        url = reverse('file_detail', args=(self.spanish_file.pk,))
+        url = reverse('mobetta:file_detail', args=(self.spanish_file.pk,))
         response = self.app.get(url, user=self.normal_user, status=403)
 
         self.assertEqual(response.status_code, 403)
@@ -751,7 +730,7 @@ class TranslationAccessTests(MultiplePOFilesTestCase, WebTest):
         then test if they can edit a translation on that file.
         (And none of the others)
         """
-        url = reverse('add_translator')
+        url = reverse('mobetta:add_translator')
         response = self.app.get(url, user=self.admin_user)
 
         self.assertEqual(response.status_code, 200)
@@ -768,13 +747,13 @@ class TranslationAccessTests(MultiplePOFilesTestCase, WebTest):
         ), response.text)
 
         # Now try to access the Welsh translation file list as a normal user
-        url = reverse('file_list', kwargs={'lang_code': 'cy'})
+        url = reverse('mobetta:file_list', kwargs={'lang_code': 'cy'})
         response = self.app.get(url, user=self.normal_user)
         self.assertEqual(response.status_code, 200)
 
         # Now go to the file detail itself and change a translation
         welsh_file = TranslationFile.objects.get(language_code='cy')
-        url = reverse('file_detail', args=(welsh_file.pk,))
+        url = reverse('mobetta:file_detail', args=(welsh_file.pk,))
         response = self.app.get(url, user=self.normal_user)
         self.assertEqual(response.status_code, 200)
 
@@ -795,12 +774,12 @@ class TranslationAccessTests(MultiplePOFilesTestCase, WebTest):
 
         # Now try editing a file they're not allowed to edit
         spanish_file = TranslationFile.objects.get(language_code='es')
-        url = reverse('file_detail', args=(spanish_file.pk,))
+        url = reverse('mobetta:file_detail', args=(spanish_file.pk,))
         response = self.app.get(url, user=self.normal_user, status=403)
         self.assertEqual(response.status_code, 403)
 
         # ..and make sure only the correct languages show up in the language list
-        url = reverse('language_list')
+        url = reverse('mobetta:language_list')
         response = self.app.get(url, user=self.normal_user)
         self.assertIn(_('Welsh'), response.text)
         self.assertNotIn(_('Spanish'), response.text)

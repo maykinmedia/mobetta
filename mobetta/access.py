@@ -1,6 +1,7 @@
 from django.conf import settings
-from mobetta.conf import settings as mobetta_settings
 from django.core.exceptions import ImproperlyConfigured
+
+from mobetta.conf import settings as mobetta_settings
 
 try:
     import importlib

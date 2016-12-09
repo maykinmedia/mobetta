@@ -1,11 +1,11 @@
-from django.conf.urls import url, include
+from django.conf.urls import include, url
 
 from .views import (
-    EditHistoryView, download_po_file, FileDetailView, FileListView,
-    LanguageListView, AddTranslatorView
+    AddTranslatorView, EditHistoryView, FileDetailView, FileListView,
+    LanguageListView, download_po_file
 )
 
-
+app_name = 'mobetta'
 urlpatterns = [
     url(r'^$', LanguageListView.as_view(), name='language_list'),
     url(r'^add_translator/$', AddTranslatorView.as_view(), name='add_translator'),

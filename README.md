@@ -1,15 +1,62 @@
-# Mobetta #
+# Mobetta
 
-Full README still to come...
+Mobetta is a reusable app to manage translation files in Django.
+
+It's inspired on django-rosetta and sports extra features such as comments on
+translations, improved stability and a couple of bugfixes. More features
+are planned.
+
+## Installation
+
+Install with pip:
+
+    pip install mobetta
+
+Next, hook up mobetta by adding it to installed apps:
+
+```python
+# settings.py
+
+INSTALLED_APPS = [
+    ...
+    'mobetta',
+    ...
+]
+```
+
+and add it to your root `urls.py`:
+
+```python
+# urls.py
+
+from django.conf.urls import include, url
+...
+
+import mobetta.urls
+
+urlpatterns = [
+    ...
+    url(r'^mobetta/', include(mobetta.urls.urlpatterns, 'mobetta', 'mobetta')),
+    ...
+]
+```
+
+Finally, run `migrate` to create the database tables:
+
+```bash
+python manage.py migrate
+```
+
+## Usage
+
+Mobetta needs to be aware of your translation files. To discover the files, use
+the management command:
+
+    python manage.py locate_translation_files
+
 
 ## Notes ##
 
 ### How Django loads translation files ###
 
-Loading non-lazy translations is done when the server is started. The relevant code is in `utils/translation/trans_real.py`.
-
-* First Django loads its own translations (from `django/conf/locale/`)
-* Then it loads translations for `INSTALLED_APPS`, in the reverse order in which they are specified in settings.py.
-* Then, if we've specified LOCALE_DIRS in settings.py, we load the files from those directories.
-
-After a locale directory is loaded, it is merged into a 'main' translation object. Therefore if the same string is specified in two of our apps, the translation specified in the app closest to the top of `INSTALLED_APPS` is used, no matter what app is requesting the translation.
+See the [django docs](https://docs.djangoproject.com/en/stable/topics/i18n/translation/#how-django-discovers-translations).

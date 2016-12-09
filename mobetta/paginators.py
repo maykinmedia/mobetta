@@ -1,5 +1,6 @@
 from django.core.paginator import Paginator
 
+
 class MovingRangePaginator(Paginator):
 
     def limited_range(self, current_page_number):

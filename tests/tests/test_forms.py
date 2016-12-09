@@ -3,6 +3,7 @@ from django.test import TestCase
 from mobetta import util
 from mobetta.forms import TranslationForm
 
+
 class TranslationFormTests(TestCase):
 
     def test_clean_success_with_no_format_token(self):

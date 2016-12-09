@@ -1,6 +1,5 @@
 import os
 
-
 PROJECT_DIR = os.path.dirname(__file__)
 BASE_DIR = PROJECT_DIR  # setting present in new startproject
 
@@ -73,6 +72,10 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+]
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale')
 ]
 
 MOBETTA_LANGUAGE_GROUPS = True

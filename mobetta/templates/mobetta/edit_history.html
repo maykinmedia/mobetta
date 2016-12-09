@@ -5,9 +5,9 @@
 
 {% block breadcrumbs %}
 <div class="breadcrumbs">
-  <a href="{% url 'language_list' %}">{% trans "Home" %}</a>
-  &rsaquo; <a href="{% url 'file_list' lang_code=translation_file.language_code %}">{{ translation_file.get_language_name }}</a>
-  &rsaquo; <a href="{% url 'file_detail' pk=translation_file.pk %}">{{ translation_file.filepath }}</a>
+  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; <a href="{% url 'mobetta:file_list' lang_code=translation_file.language_code %}">{{ translation_file.get_language_name }}</a>
+  &rsaquo; <a href="{% url 'mobetta:file_detail' pk=translation_file.pk %}">{{ translation_file.filepath }}</a>
   &rsaquo; {{ _('Edit history') }}
 </div>
 {% endblock %}
