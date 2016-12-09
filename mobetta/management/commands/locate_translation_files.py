@@ -1,29 +1,26 @@
-from optparse import make_option
-
 from django.conf import settings
-from django.core.management.base import BaseCommand
+from django.core.management import BaseCommand
 
 from mobetta.models import TranslationFile
 from mobetta.util import app_name_from_filepath, find_pofiles
 
 
 class Command(BaseCommand):
-    help = ("Send SMS notifications to workers for tomorrow's assignments")
+    help = "Scan the project directory and locate translation files."
 
     def add_arguments(self, parser):
-         parser.add_argument('--include-third-party',
-            action='store_true',
+        parser.add_argument(
+            '--include-third-party', action='store_true',
             help='Detect translation files for third-party apps',
-            dest='include_third_party',
-            default=False)
+        )
 
-    def handle(self, *args, **options):
+    def handle(self, **options):
         """
         Find all translation files and populate the database with them.
         """
 
         for lang_code, lang_name in settings.LANGUAGES:
-            filepaths = find_pofiles(lang_code, third_party_apps=options.get('include_third_party'))
+            filepaths = find_pofiles(lang_code, third_party_apps=options['include_third_party'])
             if len(filepaths) > 0:
                 print("{} filepaths found for language {}".format(len(filepaths), lang_name))
 
@@ -33,4 +30,4 @@ class Command(BaseCommand):
                     filepath=fp,
                     language_code=lang_code
                 )
-                print("{} Created: {}".format(fp, created))
+                self.stdout.write("{} Created: {}".format(fp, created))
