@@ -17,7 +17,7 @@
   <tbody>
     {% for lang_code, lang_name, file_count in languages %}
       <tr>
-        <td><a href="{% url 'file_list' lang_code=lang_code %}">{{ lang_name }}</a></td>
+        <td><a href="{% url 'mobetta:file_list' lang_code=lang_code %}">{{ lang_name }}</a></td>
         <td>{{ file_count }}</td>
       </tr>
     {% endfor %}

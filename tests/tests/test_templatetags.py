@@ -3,6 +3,7 @@
 from django.test import TestCase
 from django.template import Template, Context
 
+
 class MessageTagTests(TestCase):
 
     def test_highlight_tokens(self):

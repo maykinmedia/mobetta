@@ -1,23 +1,21 @@
 import re
 
-from django.shortcuts import render
-from django.views.generic import View, FormView, ListView, TemplateView
-from django.core.paginator import Paginator
-from django.core.urlresolvers import reverse
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import user_passes_test, login_required
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
-from django.contrib import messages
+from django.http import HttpResponseRedirect
+from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import never_cache
-from django.contrib.auth.decorators import user_passes_test, login_required
-from django.http import HttpResponseRedirect, JsonResponse
-from django.conf import settings
+from django.views.generic import FormView, ListView, TemplateView
 
 from mobetta import util
 from mobetta import formsets
-from mobetta.models import TranslationFile, EditLog, MessageComment
+from mobetta.models import TranslationFile, EditLog
 from mobetta.forms import TranslationForm, CommentForm, AddTranslatorForm
 from mobetta.access import can_translate, can_translate_language
 from mobetta.conf import settings as mobetta_settings
@@ -115,12 +113,12 @@ class FileDetailView(FormView):
     def filter_by_search_tag(self, entries, tag):
         regex = re.compile(tag, re.IGNORECASE)
 
-        return (
-            entry for entry in entries
-            if regex.search(entry.msgid)
-            or regex.search(entry.msgstr)
-            or (regex.search(entry.msgctxt) if entry.msgctxt else '')
-        )
+        def entry_matches(entry):
+            return (regex.search(entry.msgid) or
+                    regex.search(entry.msgstr) or
+                    (regex.search(entry.msgctxt) if entry.msgctxt else ''))
+
+        return (entry for entry in entries if entry_matches(entry))
 
     def filter_by_type(self, pofile, type):
         filters = {
@@ -155,7 +153,7 @@ class FileDetailView(FormView):
                 'old_translation': file_translations[form_data['md5hash']]['translation'],
             })
             new_form_data = {
-                '{}-{}'.format(f.prefix, k) : form_data[k]
+                '{}-{}'.format(f.prefix, k): form_data[k]
                 for k in form_data.keys()
             }
             f.data = new_form_data
@@ -204,8 +202,13 @@ class FileDetailView(FormView):
                 for f, change in rejected_changes:
                     # Add an error message to the field as well as a message
                     # in the top of the view.
-                    f.add_error(change['field'], _("This value was edited while you were editing it (new value: %s)") % (change['po_value']))
-                    messages.error(self.request, _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid']))
+                    f.add_error(
+                        change['field'],
+                        _("This value was edited while you were editing it (new value: %s)") % change['po_value'])
+                    messages.error(
+                        self.request,
+                        _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid'])
+                    )
 
                 return self.form_invalid(form)
 
@@ -216,7 +219,8 @@ class FileDetailView(FormView):
 
         translations = self.get_translations()
 
-        paginator = self.get_paginator(translations, self.paginate_by) #Paginator(translations, self.translations_per_page)
+        # Paginator(translations, self.translations_per_page)
+        paginator = self.get_paginator(translations, self.paginate_by)
         page = self.get_page(paginator)
 
         ctx['formset'] = ctx.pop('form')
@@ -297,7 +301,7 @@ class FileDetailView(FormView):
         return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
 
     def get_success_url(self):
-        return reverse('file_detail', args=(self.translation_file.pk,))
+        return reverse('mobetta:file_detail', args=(self.translation_file.pk,))
 
     def get_translations(self):
         entries = self.get_entries()
@@ -356,7 +360,7 @@ class EditHistoryView(ListView):
         if field is None:
             return logs.all()
 
-        __ , order, field = field.rpartition('-')
+        __, order, field = field.rpartition('-')
 
         if field in order_fields:
             return logs.order_by(order + order_fields[field])
@@ -383,6 +387,7 @@ class AddTranslatorView(FormView):
 
     form_class = AddTranslatorForm
     template_name = 'mobetta/add_translator.html'
+    success_url = reverse_lazy('mobetta:language_list')
 
     @method_decorator(user_passes_test(lambda user: can_translate(user), settings.LOGIN_URL))
     def dispatch(self, request, *args, **kwargs):
@@ -391,13 +396,11 @@ class AddTranslatorView(FormView):
     def form_valid(self, form):
         form.save()
 
-        messages.success(self.request,
+        messages.success(
+            self.request,
             _("{user} successfully added as a translator for {language}").format(
                 user=str(form.cleaned_data.get('user')),
                 language=dict(settings.LANGUAGES)[form.cleaned_data.get('language')]
             )
         )
         return super(AddTranslatorView, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse('language_list')
