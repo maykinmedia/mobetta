@@ -1,13 +1,14 @@
-import os
-import django
-import inspect
-import unicodedata
 import datetime
-import six
 import hashlib
+import inspect
+import os
+import unicodedata
 
+import django
 from django.conf import settings
 from django.utils import timezone
+
+import six
 
 
 def fix_newlines(inval, outval):

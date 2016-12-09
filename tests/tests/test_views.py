@@ -6,13 +6,13 @@ from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
 
-from .factories import AdminFactory, EditLogFactory, UserFactory
-from .utils import POFileTestCase, MultiplePOFilesTestCase
+from django_webtest import WebTest
 
 from mobetta.models import TranslationFile
 from mobetta.util import get_hash_from_msgid_context
 
-from django_webtest import WebTest
+from .factories import AdminFactory, EditLogFactory, UserFactory
+from .utils import MultiplePOFilesTestCase, POFileTestCase
 
 
 def get_field_prefix(form, field_name, value):

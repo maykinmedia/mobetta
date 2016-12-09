@@ -2,23 +2,22 @@ import re
 
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.decorators import user_passes_test, login_required
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
+from django.core.urlresolvers import reverse, reverse_lazy
 from django.forms import formset_factory
 from django.http import HttpResponseRedirect
 from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
-from django.utils.translation import ugettext as _
 from django.utils.decorators import method_decorator
+from django.utils.translation import ugettext as _
 from django.views.generic import FormView, ListView, TemplateView
 
-from mobetta import util
-from mobetta import formsets
-from mobetta.models import TranslationFile, EditLog
-from mobetta.forms import TranslationForm, CommentForm, AddTranslatorForm
+from mobetta import formsets, util
 from mobetta.access import can_translate, can_translate_language
 from mobetta.conf import settings as mobetta_settings
+from mobetta.forms import AddTranslatorForm, CommentForm, TranslationForm
+from mobetta.models import EditLog, TranslationFile
 from mobetta.paginators import MovingRangePaginator
 
 

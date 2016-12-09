@@ -8,16 +8,16 @@ try:
 except ImportError:
     import mock
 
-from django.test import TestCase
 from django.core.urlresolvers import reverse
+from django.test import TestCase
 from django.utils.translation import ugettext as _
 
 from rest_framework.test import APIClient
 
 from mobetta.util import get_hash_from_msgid_context
 
-from .utils import POFileTestCase
 from .factories import AdminFactory, MessageCommentFactory, UserFactory
+from .utils import POFileTestCase
 
 
 class MessageCommentAPITests(POFileTestCase):

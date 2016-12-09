@@ -1,9 +1,9 @@
 # coding=utf8
 
-from .utils import POFileTestCase
-
-from mobetta.models import TranslationFile
 from mobetta import util
+from mobetta.models import TranslationFile
+
+from .utils import POFileTestCase
 
 
 class POFileTests(POFileTestCase):

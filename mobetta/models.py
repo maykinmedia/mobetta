@@ -1,9 +1,7 @@
-import polib
-
+from django.conf import settings
 from django.db import models
 
-from django.conf import settings
-
+import polib
 
 # UserModel represents the model used by the project
 UserModel = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')

@@ -1,6 +1,5 @@
 import os
 
-
 PROJECT_DIR = os.path.dirname(__file__)
 BASE_DIR = PROJECT_DIR  # setting present in new startproject
 

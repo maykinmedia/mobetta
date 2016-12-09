@@ -5,9 +5,10 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
+from polib import POEntry
+
 from mobetta.models import TranslationFile
 
-from polib import POEntry
 
 class POFileTestCase(TestCase):
     """
@@ -78,4 +79,3 @@ class MultiplePOFilesTestCase(TestCase):
             os.remove(os.path.join(trans_dir, 'django.po'))
 
         TranslationFile.objects.all().delete()
-
