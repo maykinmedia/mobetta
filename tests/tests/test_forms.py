@@ -100,11 +100,10 @@ class TranslationFormTests(TestCase):
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.non_field_errors()), 1)
 
-
     def test_clean_fail_with_missing_py2_format_token_in_source(self):
         form = TranslationForm({
             'msgid': "Nothing to format.",
-            'translation': "Rien a formater %(actuellement).",
+            'translation': "Rien a formater %(actuellement)s.",
             'fuzzy': False,
         })
         self.assertFalse(form.is_valid())
@@ -112,7 +111,7 @@ class TranslationFormTests(TestCase):
 
     def test_clean_fail_with_missing_py2_format_token_in_translation(self):
         form = TranslationForm({
-            'msgid': "Something %(important) to format.",
+            'msgid': "Something %(important)s to format.",
             'translation': "Rien a formater.",
             'fuzzy': False,
         })
@@ -121,13 +120,12 @@ class TranslationFormTests(TestCase):
 
     def test_clean_fail_with_missing_py2_format_tokens_in_both_source_and_translation(self):
         form = TranslationForm({
-            'msgid': "Nothing %(important) to format.",
-            'translation': "Rien %(important) a formater %(lol).",
+            'msgid': "Nothing %(important)s to format.",
+            'translation': "Rien %(important)s a formater %(lol)s.",
             'fuzzy': False,
         })
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.non_field_errors()), 1)
-
 
     def test_clean_fail_with_missing_template_variable_in_source(self):
         form = TranslationForm({

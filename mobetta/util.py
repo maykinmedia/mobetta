@@ -24,9 +24,7 @@ Copyright (c) 2008-2010 Marco Bonetti
 """
 import datetime
 import hashlib
-import inspect
 import os
-import re
 import unicodedata
 
 import django
@@ -62,7 +60,7 @@ def fix_newlines(inval, outval):
 def get_token_regexes():
     return [
         r'(?:\{[^\}\n]*\})',  # Python3 format tokens
-        r'(?:%\([^\)]*\))',  # Python2 format tokens
+        r'(?:%\([^\)]*\)[acdefgiorsux])',  # Python2 format tokens
         r'(?:\{{2}[^\}\n]*\}{2})',  # Django template variables
     ]
 
