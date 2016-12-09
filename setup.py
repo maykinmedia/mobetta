@@ -10,7 +10,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='mobetta',
-    version='0.0.2',
+    version='0.1.0',
     license='MIT',
 
     # packaging
@@ -33,6 +33,7 @@ setup(
     author='Maykin Media, Ben Wadsworth',
     author_email='ben@maykinmedia.nl',
     classifiers=[
+        'Development Status :: 3 - Alpha',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 1.8',
