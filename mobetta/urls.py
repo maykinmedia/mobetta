@@ -5,6 +5,7 @@ from .views import (
     LanguageListView, download_po_file
 )
 
+app_name = 'mobetta'
 urlpatterns = [
     url(r'^$', LanguageListView.as_view(), name='language_list'),
     url(r'^add_translator/$', AddTranslatorView.as_view(), name='add_translator'),
