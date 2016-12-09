@@ -1,14 +1,40 @@
+"""
+Copyright (c) 2008-2010 Marco Bonetti
+
+ Permission is hereby granted, free of charge, to any person
+ obtaining a copy of this software and associated documentation
+ files (the "Software"), to deal in the Software without
+ restriction, including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following
+ conditions:
+
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ OTHER DEALINGS IN THE SOFTWARE.
+"""
 import datetime
 import hashlib
 import inspect
 import os
+import re
 import unicodedata
 
 import django
 from django.conf import settings
-from django.utils import timezone
+from django.core.exceptions import ImproperlyConfigured
+from django.utils import six, timezone
 
-import six
+from .conf.settings import MOBETTA_PO_FILENAMES
 
 
 def fix_newlines(inval, outval):
@@ -64,7 +90,6 @@ def get_occurrences(poentry):
 
 def app_name_from_filepath(path):
     app = path.split("/locale")[0].split("/")[-1]
-
     return app
 
 
@@ -72,6 +97,8 @@ def timestamp_for_metadata(dt=None):
     """
     Return a timestamp with a timezone for the configured locale.  If all else
     fails, consider localtime to be UTC.
+
+    Originally written by Marco Bonetti.
     """
     dt = dt or datetime.datetime.now()
     if timezone is None:
@@ -161,36 +188,20 @@ def update_translations(pofile, form_changes):
     return applied_changes, rejected_changes
 
 
-def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=False):
+def find_pofiles(lang, project_apps=True, third_party_apps=False):
     """
     Scans app directories for gettext catalogues for the given language.
+
+    Originally written by Marco Bonetti.
     """
+    from django.apps import apps
 
     paths = []
 
-    # project/locale
-    parts = settings.SETTINGS_MODULE.split('.')
-    project = __import__(parts[0], {}, {}, [])
-    abs_project_path = os.path.normpath(os.path.abspath(os.path.dirname(project.__file__)))
-
-    if project_apps:
-        internal_path = os.path.abspath(os.path.join(os.path.dirname(project.__file__), 'locale'))
-        if os.path.exists(internal_path):
-            paths.append(internal_path)
-
-        external_path = os.path.abspath(os.path.join(os.path.dirname(project.__file__), '..', 'locale'))
-        if os.path.exists(external_path):
-            paths.append(external_path)
-
-    # django/locale
-    if django_apps:
-        django_paths = []
-        for root, dirnames, filename in os.walk(os.path.abspath(os.path.dirname(django.__file__))):
-            if 'locale' in dirnames:
-                django_paths.append(os.path.join(root, 'locale'))
-                continue
-
-        paths = paths + django_paths
+    if not hasattr(settings, 'BASE_DIR'):
+        raise ImproperlyConfigured(
+            "mobetta needs the `BASE_DIR` setting, "
+            "which should hold the absolute path to the project root.")
 
     # custom paths specified in settings
     for localepath in settings.LOCALE_PATHS:
@@ -198,89 +209,52 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
             paths.append(localepath)
 
     # project/app/locale
-    has_appconfig = False
-    for appname in settings.INSTALLED_APPS:
+    abs_project_path = os.path.realpath(settings.BASE_DIR) + os.path.sep
+    django_dir = os.path.realpath(os.path.abspath(os.path.dirname(django.__file__))) + os.path.sep
+    for app_config in apps.get_app_configs():
+        app_dir = os.path.realpath(app_config.path) + os.path.sep
+
+        # ignore django apps - django ships its .mo files and an update would overwrite them
+        if app_dir.startswith(django_dir):
+            continue
+
+        # ignore third party packages?
+        # NOTE: if a third party package ships with the .mo file(s), these will also get
+        # overwritten on updates...
+        if not third_party_apps and not app_dir.startswith(abs_project_path):
+            continue
+
+        # ignore project apps?
+        if not project_apps and app_dir.startswith(abs_project_path):
+            continue
+
         # TODO: Handle excluded apps in project or mobetta settings
-        p = appname.rfind('.')
-        if p >= 0:
-            app = getattr(__import__(appname[:p], {}, {}, [str(appname[p + 1:])]), appname[p + 1:])
-        else:
-            app = __import__(appname, {}, {}, [])
+        ldir = os.path.join(app_dir, 'locale')
+        if os.path.isdir(ldir):
+            paths.append(ldir)
 
-        # Convert AppConfig (Django 1.7+) to application module
-        if django.VERSION[0:2] >= (1, 7):
-            from django.apps import AppConfig, apps
-            if inspect.isclass(app) and issubclass(app, AppConfig):
-                has_appconfig = True
-                continue
+    # ensure all locale combinations are detected, e.g. nl_nl, nl_NL, nl-nl and
+    # nl-NL
+    langs = [lang]
+    for splitter in ['-', '_']:
+        if splitter in lang:
+            lang_code, country_code = lang.lower().split(splitter)
+            langs += [
+                "%s%s%s" % (lang_code, splitter, country_code),
+                "%s%s%s" % (lang_code, splitter, country_code.upper())
+            ]
 
-        app_path = os.path.normpath(os.path.abspath(os.path.join(os.path.dirname(app.__file__), 'locale')))
-
-        # ignore 'contrib' apps if we're ignoring Django apps
-        if not django_apps and 'contrib' in app_path and 'django' in app_path:
-            continue
-
-        # third party external
-        if not third_party_apps and abs_project_path not in app_path:
-            continue
-
-        # local apps
-        if not project_apps and abs_project_path in app_path:
-            continue
-
-        if os.path.isdir(app_path):
-            paths.append(app_path)
-
-    # Handling using AppConfigs is messy, but we can just get the app paths directly
-    # from the apps object
-    if has_appconfig:
-        for app_ in apps.get_app_configs():
-            # TODO: Handle excluded apps in project or mobetta settings
-            app_path = app_.path
-
-            # maybe ignore django apps
-            if not django_apps and 'contrib' in app_path and 'django' in app_path:
-                continue
-
-            # maybe ignore third party external
-            if not third_party_apps and abs_project_path not in app_path:
-                continue
-
-            # maybe ignore local apps
-            if not project_apps and abs_project_path in app_path:
-                continue
-
-            internal_path = os.path.abspath(os.path.join(app_path, 'locale'))
-            if os.path.exists(internal_path):
-                paths.append(internal_path)
-            external_path = os.path.abspath(os.path.join(app_path, '..', 'locale'))
-            if os.path.exists(external_path):
-                paths.append(external_path)
-
-    # Not sure quite why this bit is here, maybe each language needs
-    # two representations, like nl-NL and nl_NL.
-    langs = [lang, ]
-    if u'-' in lang:
-        _l, _c = map(lambda x: x.lower(), lang.split(u'-', 1))
-        langs += [u'%s_%s' % (_l, _c), u'%s_%s' % (_l, _c.upper()), ]
-    elif u'_' in lang:
-        _l, _c = map(lambda x: x.lower(), lang.split(u'_', 1))
-        langs += [u'%s-%s' % (_l, _c), u'%s-%s' % (_l, _c.upper()), ]
-
-    paths = map(os.path.normpath, paths)
-    paths = list(set(paths))
+    # normalize paths and remove duplicates
+    paths = {os.path.normpath(path) for path in paths}
     abspaths = set()
-
     for path in paths:
-        # TODO: Exclude paths
+        # TODO: blakclist paths?
         for lang_ in langs:
             dirname = os.path.join(path, lang_, 'LC_MESSAGES')
-            # TODO: Store po_filenames in settings
-            po_filenames = ['django.po', 'djangojs.po']
-            for fn in po_filenames:
-                filename = os.path.join(dirname, fn)
+            for name in MOBETTA_PO_FILENAMES:
+                filename = os.path.join(dirname, name)
                 if os.path.isfile(filename):
-                    abspaths.add(os.path.abspath(filename))
+                    abspaths.add((filename))
 
     return list(sorted(abspaths))
 

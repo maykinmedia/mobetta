@@ -74,4 +74,8 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale')
+]
+
 MOBETTA_LANGUAGE_GROUPS = True

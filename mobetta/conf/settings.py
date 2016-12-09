@@ -32,3 +32,5 @@ USE_EDIT_LOGGING = getattr(settings, 'MOBETTA_USE_EDIT_LOGGING', True)
 # installing `microsofttranslate` from PyPI, and also uses the settings
 # `MS_TRANSLATE_CLIENT_ID` and `MS_TRANSLATE_CLIENT_SECRET`
 USE_MS_TRANSLATE = getattr(settings, 'MOBETTA_USE_MS_TRANSLATE', False)
+
+MOBETTA_PO_FILENAMES = getattr(settings, 'MOBETTA_PO_FILENAMES', ['django.po', 'djangojs.po'])
