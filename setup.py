@@ -29,7 +29,7 @@ setup(
     # metadata
     description='A Django package for managing translation files',
     long_description=README,
-    url='https://www.example.com/',
+    url='https://bitbucket.org/maykinmedia/mobetta/overview',
     author='Maykin Media, Ben Wadsworth',
     author_email='ben@maykinmedia.nl',
     classifiers=[
