@@ -35,9 +35,9 @@ def fix_newlines(inval, outval):
 
 def get_token_regexes():
     return [
-        r'(?:\{[^\}\n]*\})', # Python3 format tokens
-        r'(?:%\([^\)]*\))', # Python2 format tokens
-        r'(?:\{{2}[^\}\n]*\}{2})', # Django template variables
+        r'(?:\{[^\}\n]*\})',  # Python3 format tokens
+        r'(?:%\([^\)]*\))',  # Python2 format tokens
+        r'(?:\{{2}[^\}\n]*\}{2})',  # Django template variables
     ]
 
 
@@ -56,7 +56,7 @@ def get_occurrences(poentry):
     subset = [source + ':' + line for source, line in poentry.occurrences[:2]]
 
     size = len(poentry.occurrences)
-    if  size > 2:
+    if size > 2:
         subset.append('... and {} more !'.format(size - 2))
 
     return '<br />'.join(subset)
@@ -128,7 +128,7 @@ def update_translations(pofile, form_changes):
             if entry:
                 # Check that the 'from' attr is the same as the current content
                 if change['field'] == 'translation':
-                    if entry.msgstr == change['from'] or entry.msgstr == change['from'].replace('\r',''):
+                    if entry.msgstr == change['from'] or entry.msgstr == change['from'].replace('\r', ''):
                         entry.msgstr = fix_newlines(entry.msgid, change['to'])
                         applied_changes.append((form, change))
                     else:
@@ -257,7 +257,6 @@ def find_pofiles(lang, project_apps=True, django_apps=False, third_party_apps=Fa
             if os.path.exists(external_path):
                 paths.append(external_path)
 
-
     # Not sure quite why this bit is here, maybe each language needs
     # two representations, like nl-NL and nl_NL.
     langs = [lang, ]
@@ -297,7 +296,7 @@ def get_automated_translation(translator, original_string, language_code):
 
 def get_automated_translations(translator, strings_to_translate, language_code):
     result = translator.translate_array(strings_to_translate, language_code)
-    return dict(zip(strings_to_translate, [ t['TranslatedText'] for t in result ]))
+    return dict(zip(strings_to_translate, [t['TranslatedText'] for t in result]))
 
 
 def get_hash_from_msgid_context(msgid, msgctxt):
