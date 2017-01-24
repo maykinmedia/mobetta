@@ -24,6 +24,10 @@ from mobetta.paginators import MovingRangePaginator
 class LanguageListView(TemplateView):
 
     template_name = 'mobetta/language_list.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(LanguageListView, self).dispatch(request, *args, **kwargs)
 
     def get_languages(self):
         language_codes = TranslationFile.objects.all().values_list('language_code', flat=True)
