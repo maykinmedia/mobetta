@@ -19,3 +19,5 @@ tests/static
 docs/_build
 docs/_static
 docs/_templates
+
+tests/locale/nl/LC_MESSAGES/django\.mo

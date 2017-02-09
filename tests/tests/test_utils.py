@@ -1,15 +1,43 @@
-# coding=utf8
+# -*- coding: utf-8 -*-
+import re
+from unittest import TestCase
 
 from mobetta import util
 from mobetta.models import TranslationFile
+from mobetta.util import get_token_regexes
 
 from .utils import POFileTestCase
+
+
+class TokenRegexTests(TestCase):
+    """
+    Unit test the token highlighting machinery.
+    """
+    regex = re.compile('|'.join(get_token_regexes()))
+
+    def test_old_format(self):
+        test_string = 'foo %(bar) baz'
+        tokens = self.regex.findall(test_string)
+        self.assertEqual(tokens, [])
+
+        valid = 'acdefgiorsux'
+        for modifier in valid:
+            test_string = 'foo %(bar)' + modifier + ' baz'
+            tokens = self.regex.findall(test_string)
+            self.assertEqual(tokens, ['%(bar)' + modifier])
+
+        invalid = 'bhjklmnpqtvwyz'
+        for modifier in invalid:
+            test_string = 'foo %(bar)' + modifier + ' baz'
+            tokens = self.regex.findall(test_string)
+            self.assertEqual(tokens, [])
 
 
 class POFileTests(POFileTestCase):
     """
     Unit tests for PO file I/O.
     """
+
     def test_edit_translation(self):
         self.assertEqual(TranslationFile.objects.all().count(), 1)
 
@@ -47,11 +75,11 @@ class POFileTests(POFileTestCase):
         changes = [
             (None, [
                 {
-                    'msgid': msgid_to_change, # Original message
+                    'msgid': msgid_to_change,  # Original message
                     'md5hash': util.get_message_hash(poentry),
-                    'field': 'translation', # Field to change
+                    'field': 'translation',  # Field to change
                     'from': initial_value,
-                    'to': new_msgstr, # New string to use for that message
+                    'to': new_msgstr,  # New string to use for that message
                 },
             ]),
         ]

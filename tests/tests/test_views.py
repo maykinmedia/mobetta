@@ -30,13 +30,38 @@ def get_field_prefix(form, field_name, value):
     return '-'.join(field.split('-')[:2]) if field else None
 
 
+class CompilePoFilesViewTests(POFileTestCase, WebTest):
+    def setUp(self):
+        super(CompilePoFilesViewTests, self).setUp()
+
+        self.admin_user = AdminFactory.create()
+        self.user = UserFactory.create()
+        self.url = reverse('mobetta:compile_po_files')
+
+    def test_login_required(self):
+        self.app.get(self.url, status=302)
+
+    def test_no_permission(self):
+        self.app.get(self.url, user=self.user, status=302)
+
+    def test_compile_files(self):
+        self.app.get(self.url, user=self.admin_user, status=302)
+
+
 class FileDetailViewTests(POFileTestCase, WebTest):
 
     def setUp(self):
         super(FileDetailViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
+        self.user = UserFactory.create()
         self.url = reverse('mobetta:file_detail', args=(self.transfile.pk,))
+
+    def test_login_required(self):
+        self.app.get(self.url, status=302)
+
+    def test_no_permission(self):
+        self.app.get(self.url, user=self.user, status=403)
 
     def test_single_edit(self):
         """
@@ -391,6 +416,98 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertContains(response, "Context hint")  # The context hint we searched for
         self.assertContains(response, "String 4")  # The message string associated with the context result
 
+    def test_single_edit_filter_on_type(self):
+        """
+        Go to the file detail view, make an edit to a translation, and submit.
+        Check that this translation has changed in the PO file.
+        """
+        response = self.app.get('{}?type=untranslated'.format(self.url), user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # First string: u'String 1' -> u''
+        msgid_to_edit = translation_edit_form['form-0-msgid'].value
+        msghash_to_edit = get_hash_from_msgid_context(msgid_to_edit, '')
+        self.assertEqual(translation_edit_form['form-0-translation'].value, u'')
+
+        new_translation = u'Translatèd string'
+        translation_edit_form['form-0-translation'] = new_translation
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = self.transfile.get_polib_object()
+        self.assertEqual(pofile.find(msgid_to_edit).msgstr, new_translation)
+
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
+
+        only_file_edit = file_edits.first()
+        self.assertEqual(only_file_edit.msghash, msghash_to_edit)
+        self.assertEqual(only_file_edit.new_value, new_translation)
+
+    def test_start_with_new_line_not_edited(self):
+        self.create_poentry(u'\nWith enter', u'\nWith enters')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # First string: u'String 1' -> u''
+        msgid_to_edit = translation_edit_form['form-5-msgid'].value
+        msghash_to_edit = get_hash_from_msgid_context(msgid_to_edit, '')
+        self.assertEqual(translation_edit_form['form-5-translation'].value, u'\nWith enters')
+
+        new_translation = u'met enters'
+        translation_edit_form['form-5-translation'] = new_translation
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = self.transfile.get_polib_object()
+        self.assertEqual(pofile.find(msgid_to_edit).msgstr, "\n{}".format(new_translation))
+
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
+
+        only_file_edit = file_edits.first()
+        self.assertEqual(only_file_edit.msghash, msghash_to_edit)
+        self.assertEqual(only_file_edit.new_value, new_translation)
+
+    def test_end_with_new_line_not_edited(self):
+        self.create_poentry(u'with enter\n', u'with enters\n')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # First string: u'String 1' -> u''
+        msgid_to_edit = translation_edit_form['form-5-msgid'].value
+        msghash_to_edit = get_hash_from_msgid_context(msgid_to_edit, '')
+        self.assertEqual(translation_edit_form['form-5-translation'].value, u'with enters\n')
+
+        new_translation = u'met enters'
+        translation_edit_form['form-5-translation'] = new_translation
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = self.transfile.get_polib_object()
+        self.assertEqual(pofile.find(msgid_to_edit).msgstr, "{}\n".format(new_translation))
+
+        # Check the edit history
+        file_edits = self.transfile.edit_logs.all()
+        self.assertEqual(file_edits.count(), 1)
+
+        only_file_edit = file_edits.first()
+        self.assertEqual(only_file_edit.msghash, msghash_to_edit)
+        self.assertEqual(only_file_edit.new_value, new_translation)
+
 
 class FileListViewTests(POFileTestCase, WebTest):
 
@@ -400,7 +517,14 @@ class FileListViewTests(POFileTestCase, WebTest):
         super(FileListViewTests, self).setUp()
 
         self.admin_user = AdminFactory.create()
+        self.user = UserFactory.create()
         self.url = reverse('mobetta:file_list', kwargs={'lang_code': 'nl'})
+
+    def test_login_required(self):
+        self.app.get(self.url, status=302)
+
+    def test_no_permission(self):
+        self.app.get(self.url, user=self.user, status=403)
 
     def test_file_stats(self):
 

@@ -24,9 +24,7 @@ Copyright (c) 2008-2010 Marco Bonetti
 """
 import datetime
 import hashlib
-import inspect
 import os
-import re
 import unicodedata
 
 import django
@@ -62,7 +60,7 @@ def fix_newlines(inval, outval):
 def get_token_regexes():
     return [
         r'(?:\{[^\}\n]*\})',  # Python3 format tokens
-        r'(?:%\([^\)]*\))',  # Python2 format tokens
+        r'(?:%\([^\)]*\)[acdefgiorsux])',  # Python2 format tokens
         r'(?:\{{2}[^\}\n]*\}{2})',  # Django template variables
     ]
 
@@ -155,7 +153,7 @@ def update_translations(pofile, form_changes):
             if entry:
                 # Check that the 'from' attr is the same as the current content
                 if change['field'] == 'translation':
-                    if entry.msgstr == change['from'] or entry.msgstr == change['from'].replace('\r', ''):
+                    if entry.msgstr == change['from'] or entry.msgstr.replace('\n', '') == change['from'].replace('\r',''):
                         entry.msgstr = fix_newlines(entry.msgid, change['to'])
                         applied_changes.append((form, change))
                     else:
