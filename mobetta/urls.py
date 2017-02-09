@@ -1,8 +1,8 @@
 from django.conf.urls import include, url
 
 from .views import (
-    AddTranslatorView, CompilePoFilesView, EditHistoryView, FileDetailView, FileListView,
-    LanguageListView, download_po_file
+    AddTranslatorView, CompilePoFilesView, EditHistoryView, FileDetailView,
+    FileListView, LanguageListView, download_po_file
 )
 
 app_name = 'mobetta'
