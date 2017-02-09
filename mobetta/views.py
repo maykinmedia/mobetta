@@ -98,6 +98,7 @@ class CompilePoFilesView(RedirectView):
         for translation_file in translation_files:
             translation_file.save_mofile()
 
+        messages.success(request, _('Compiled the translations. Checkout the new files.'))
         return super(CompilePoFilesView, self).get(request, *args, **kwargs)
 
 
