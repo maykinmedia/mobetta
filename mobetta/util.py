@@ -153,7 +153,7 @@ def update_translations(pofile, form_changes):
             if entry:
                 # Check that the 'from' attr is the same as the current content
                 if change['field'] == 'translation':
-                    if entry.msgstr == change['from'] or entry.msgstr == change['from'].replace('\r', ''):
+                    if entry.msgstr == change['from'] or entry.msgstr.replace('\n', '') == change['from'].replace('\r',''):
                         entry.msgstr = fix_newlines(entry.msgid, change['to'])
                         applied_changes.append((form, change))
                     else:
