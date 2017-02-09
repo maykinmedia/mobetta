@@ -1,7 +1,12 @@
+import os.path
+
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 import polib
+
+from mobetta.util import app_name_from_filepath
 
 # UserModel represents the model used by the project
 UserModel = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
@@ -13,6 +18,8 @@ class TranslationFile(models.Model):
     filepath = models.CharField(max_length=1024, blank=False, null=False)
     language_code = models.CharField(max_length=32, blank=False, null=False)
     created = models.DateTimeField(auto_now_add=True)
+    last_compiled = models.DateTimeField(null=True)
+    is_valid = models.BooleanField(default=True)
 
     def __unicode__(self):
         return "{} ({})".format(self.name, self.filepath)
@@ -23,6 +30,16 @@ class TranslationFile(models.Model):
 
     def get_polib_object(self):
         return polib.pofile(self.filepath)
+
+    def save_mofile(self):
+        if os.path.isfile(self.filepath):
+            pofile = polib.pofile(self.filepath)
+            mopath = "{}mo".format(self.filepath[:-2])
+            pofile.save_as_mofile(mopath)
+            self.last_compiled = timezone.now()
+        else:
+            self.is_valid = False
+        self.save()
 
     def get_statistics(self):
         """

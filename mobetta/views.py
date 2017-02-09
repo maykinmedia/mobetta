@@ -11,7 +11,7 @@ from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
-from django.views.generic import FormView, ListView, TemplateView
+from django.views.generic import FormView, ListView, TemplateView, RedirectView
 
 from mobetta import formsets, util
 from mobetta.access import can_translate, can_translate_language
@@ -84,6 +84,21 @@ class FileListView(ListView):
         })
 
         return ctx
+
+
+class CompilePoFilesView(RedirectView):
+    url = reverse_lazy('mobetta:language_list')
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(CompilePoFilesView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        translation_files = TranslationFile.objects.all()
+        for translation_file in translation_files:
+            translation_file.save_mofile()
+
+        return super(CompilePoFilesView, self).get(request, *args, **kwargs)
 
 
 class FileDetailView(FormView):
