@@ -300,6 +300,10 @@ class FileDetailView(FormView):
         return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
 
     def get_success_url(self):
+        if self.request.GET:
+            return "{}?{}".format(
+                reverse('mobetta:file_detail', args=(self.translation_file.pk,)),
+                self.request.GET.urlencode())
         return reverse('mobetta:file_detail', args=(self.translation_file.pk,))
 
     def get_translations(self):
