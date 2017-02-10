@@ -11,7 +11,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 setup(
     name='mobetta',
     version='0.1.4',
-    license='MIT',
+    license='BSD',
 
     # packaging
     install_requires=[
@@ -29,7 +29,7 @@ setup(
     # metadata
     description='A Django package for managing translation files',
     long_description=README,
-    url='https://bitbucket.org/maykinmedia/mobetta/overview',
+    url='https://github.com/maykinmedia/mobetta',
     author='Maykin Media, Ben Wadsworth',
     author_email='ben@maykinmedia.nl',
     classifiers=[
@@ -40,7 +40,7 @@ setup(
         'Framework :: Django :: 1.9',
         'Framework :: Django :: 1.10',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: MIT License',
+        'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',

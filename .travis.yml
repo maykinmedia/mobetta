@@ -1,28 +1,29 @@
 language: python
-install:
-  - pip install coverage codecov coveralls tox
+python:
+  - "3.5"
+
+services:
+  - postgresql
+
 addons:
-  apt:
-    sources:
-      - deadsnakes
-    packages:
-      - python3.5
+  postgresql: "9.4"
+
+install:
+  - pip install codecov coveralls tox
 script:
-  - tox
+  - tox --
 after_success:
   - coveralls
   - codecov
 env:
   - TOXENV=py27-django18
-  - TOXENV=py27-django19
-
-  - TOXENV=pypy-django18
-  - TOXENV=pypy-django19
-
-  - TOXENV=py33-django18
-
   - TOXENV=py34-django18
-  - TOXENV=py34-django19
-
   - TOXENV=py35-django18
+
+  - TOXENV=py27-django19
+  - TOXENV=py34-django19
   - TOXENV=py35-django19
+
+  - TOXENV=py27-django110
+  - TOXENV=py34-django110
+  - TOXENV=py35-django110
