@@ -1,6 +1,8 @@
 # Mobetta
 
 [![Build Status](https://travis-ci.org/maykinmedia/mobetta.svg?branch=master)](https://travis-ci.org/maykinmedia/mobetta)
+[![codecov](https://codecov.io/gh/maykinmedia/mobetta/branch/develop/graph/badge.svg)](https://codecov.io/gh/maykinmedia/mobetta)
+[![Lintly](https://lintly.com/gh/maykinmedia/mobetta/badge.svg)](https://lintly.com/gh/maykinmedia/mobetta/)
 
 Mobetta is a reusable app to manage translation files in Django.
 
