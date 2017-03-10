@@ -193,10 +193,20 @@ class FileDetailView(FormView):
 
             # Only update the metadata if we've actually made some changes
             if len(applied_changes) > 0:
+                if hasattr(self.request.user, 'first_name'):
+                    first_name = self.request.user.first_name
+                else:
+                    first_name = None
+
+                if hasattr(self.request.user, 'last_name'):
+                    last_name = self.request.user.last_name
+                else:
+                    last_name = None
+
                 util.update_metadata(
                     pofile,
-                    self.request.user.first_name,
-                    self.request.user.last_name,
+                    first_name,
+                    last_name,
                     self.request.user.email,
                 )
 
