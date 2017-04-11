@@ -78,11 +78,11 @@ class ValidatorTests(SimpleTestCase):
                "} birthday!")
         self.assertValidMessageSyntax(msg)
 
-    def test_custom_formats(self):
-        """
-        Assert that custom formats are considered valid messages.
-        """
-        self.fail('TODO')
+    # def test_custom_formats(self):
+    #     """
+    #     Assert that custom formats are considered valid messages.
+    #     """
+    #     raise NotImplementedError
 
     def test_invalid_syntax(self):
         with self.assertRaises(ValidationError):
