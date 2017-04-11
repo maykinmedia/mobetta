@@ -9,6 +9,7 @@ SITE_ID = 1
 
 INSTALLED_APPS = [
     'mobetta',
+    'mobetta.icu',
     'tests.app',
     'django.contrib.admin',
     'django.contrib.auth',

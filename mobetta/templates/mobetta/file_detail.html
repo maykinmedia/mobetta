@@ -43,9 +43,11 @@
                             <li>
                                 <a href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
                             </li>
+                            {% if fuzzy_filter %}
                             <li>
                                 <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Fuzzy</a>
                             </li>
+                            {% endif %}
                             <li>
                                 <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Translated</a>
                             </li>
@@ -61,6 +63,7 @@
                 {{ formset.management_form }}
                 {% csrf_token %}
 
+                {% block formset %}
                 <table cellspacing="0">
                     <thead>
                         <tr>
@@ -125,6 +128,7 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                {% endblock formset %}
 
                 <div class="submit-row">
                     <input type="submit" />

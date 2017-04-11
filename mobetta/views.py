@@ -20,8 +20,10 @@ from mobetta.forms import AddTranslatorForm, CommentForm, TranslationForm
 from mobetta.models import EditLog, TranslationFile
 from mobetta.paginators import MovingRangePaginator
 
+from .icu.mixins import ICULanguageListMixin
 
-class LanguageListView(TemplateView):
+
+class LanguageListView(ICULanguageListMixin, TemplateView):
 
     template_name = 'mobetta/language_list.html'
 
@@ -39,13 +41,8 @@ class LanguageListView(TemplateView):
         return language_tuples
 
     def get_context_data(self, *args, **kwargs):
-        ctx = super(LanguageListView, self).get_context_data(*args, **kwargs)
-
-        ctx.update({
-            'languages': self.get_languages()
-        })
-
-        return ctx
+        kwargs['languages'] = self.get_languages()
+        return super(LanguageListView, self).get_context_data(*args, **kwargs)
 
 
 def download_po_file(request, file_pk):
@@ -78,7 +75,7 @@ class FileListView(ListView):
         return super(FileListView, self).dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
-        return TranslationFile.objects.filter(language_code=self.language_code)
+        return self.model.objects.filter(language_code=self.language_code)
 
     def get_context_data(self, *args, **kwargs):
         ctx = super(FileListView, self).get_context_data(*args, **kwargs)
@@ -108,6 +105,7 @@ class CompilePoFilesView(RedirectView):
 
 
 class FileDetailView(FormView):
+    model = TranslationFile
     template_name = 'mobetta/file_detail.html'
     form_class = formset_factory(
         TranslationForm,
@@ -118,12 +116,12 @@ class FileDetailView(FormView):
     paginate_by = 20
     translations_per_page = 20
 
+    edit_log_model = EditLog
+    success_url_pattern = 'mobetta:file_detail'
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
-        self.translation_file = get_object_or_404(
-            TranslationFile,
-            pk=self.request.resolver_match.kwargs['pk']
-        )
+        self.translation_file = get_object_or_404(self.model, pk=kwargs['pk'])
 
         if not can_translate_language(request.user, self.translation_file.language_code):
             raise PermissionDenied
@@ -148,7 +146,7 @@ class FileDetailView(FormView):
         }
         return getattr(pofile, filters[type])() if type in filters else pofile
 
-    def form_invalid(self, form):
+    def populate_old_data(self, form):
         # Populate the old_<fieldname> values with the file's current translation/context
         pofile = self.translation_file.get_polib_object()
 
@@ -177,8 +175,44 @@ class FileDetailView(FormView):
                 for k in form_data.keys()
             }
             f.data = new_form_data
+        return form
 
+    def form_invalid(self, form):
+        form = self.populate_old_data(form)
         return self.render_to_response(self.get_context_data(form=form))
+
+    def save_changes(self, changes):
+        pofile = self.translation_file.get_polib_object()
+
+        applied_changes, rejected_changes = util.update_translations(pofile, changes)
+
+        # Only update the metadata if we've actually made some changes
+        if len(applied_changes) > 0:
+            first_name = getattr(self.request.user, 'first_name', None)
+            last_name = getattr(self.request.user, 'last_name', None)
+            util.update_metadata(pofile, first_name, last_name, self.request.user.email)
+
+            pofile.save()
+
+            messages.success(self.request, _('Changed %d translations') % len(applied_changes))
+
+            # Update edit logs with the applied_changes
+            self.log_edits(applied_changes)
+
+        return rejected_changes
+
+    def log_edits(self, changes):
+        if mobetta_settings.USE_EDIT_LOGGING:
+            for f, change in changes:
+                self.edit_log_model.objects.create(
+                    user=self.request.user,
+                    file_edited=self.translation_file,
+                    msghash=change['md5hash'],
+                    msgid=change['msgid'],
+                    fieldname=change['field'],
+                    old_value=change['from'],
+                    new_value=change['to'],
+                )
 
     def form_valid(self, form):
         changes = []
@@ -187,45 +221,7 @@ class FileDetailView(FormView):
                 changes.append((f, f.get_changes()))
 
         if any(changes):
-            pofile = self.translation_file.get_polib_object()
-
-            applied_changes, rejected_changes = util.update_translations(pofile, changes)
-
-            # Only update the metadata if we've actually made some changes
-            if len(applied_changes) > 0:
-                if hasattr(self.request.user, 'first_name'):
-                    first_name = self.request.user.first_name
-                else:
-                    first_name = None
-
-                if hasattr(self.request.user, 'last_name'):
-                    last_name = self.request.user.last_name
-                else:
-                    last_name = None
-
-                util.update_metadata(
-                    pofile,
-                    first_name,
-                    last_name,
-                    self.request.user.email,
-                )
-
-                pofile.save()
-
-                messages.success(self.request, _('Changed %d translations') % len(applied_changes))
-
-                # Update edit logs with the applied_changes
-                if mobetta_settings.USE_EDIT_LOGGING:
-                    for f, change in applied_changes:
-                        EditLog.objects.create(
-                            user=self.request.user,
-                            file_edited=self.translation_file,
-                            msghash=change['md5hash'],
-                            msgid=change['msgid'],
-                            fieldname=change['field'],
-                            old_value=change['from'],
-                            new_value=change['to'],
-                        )
+            rejected_changes = self.save_changes(changes)
 
             # Add messages/errors about rejected changes
             if len(rejected_changes) > 0:
@@ -254,19 +250,7 @@ class FileDetailView(FormView):
         page = self.get_page(paginator)
 
         ctx['formset'] = ctx.pop('form')
-        ctx['formset'].initial = [
-            {
-                'msgid': translation['original'],
-                'translation': translation['translated'],
-                'old_translation': translation['translated'],
-                'fuzzy': translation['fuzzy'],
-                'old_fuzzy': translation['fuzzy'],
-                'context': translation['context'],
-                'occurrences': translation['occurrences'],
-                'md5hash': translation['md5hash'],
-            }
-            for translation in page
-        ]
+        ctx['formset'].initial = self.get_formset_initial(page)
 
         if mobetta_settings.USE_MS_TRANSLATE:
             ctx['show_suggestions'] = True
@@ -302,9 +286,22 @@ class FileDetailView(FormView):
             'paginator': paginator,
             'search_tags': search_tags,
             'comment_form': comment_form,
+            'fuzzy_filter': True,
         })
 
         return ctx
+
+    def get_formset_initial(self, page):
+        return [{
+            'msgid': translation['original'],
+            'translation': translation['translated'],
+            'old_translation': translation['translated'],
+            'fuzzy': translation['fuzzy'],
+            'old_fuzzy': translation['fuzzy'],
+            'context': translation['context'],
+            'occurrences': translation['occurrences'],
+            'md5hash': translation['md5hash'],
+        } for translation in page]
 
     def get_entries(self):
         entries = self.translation_file.get_polib_object()
@@ -331,11 +328,10 @@ class FileDetailView(FormView):
         return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
 
     def get_success_url(self):
+        url = reverse(self.success_url_pattern, args=(self.translation_file.pk,))
         if self.request.GET:
-            return "{}?{}".format(
-                reverse('mobetta:file_detail', args=(self.translation_file.pk,)),
-                self.request.GET.urlencode())
-        return reverse('mobetta:file_detail', args=(self.translation_file.pk,))
+            return "{}?{}".format(url, self.request.GET.urlencode())
+        return url
 
     def get_translations(self):
         entries = self.get_entries()

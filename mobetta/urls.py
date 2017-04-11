@@ -1,3 +1,4 @@
+from django.apps import apps
 from django.conf.urls import include, url
 
 from .views import (
@@ -16,3 +17,13 @@ urlpatterns = [
     url(r'^language/(?P<lang_code>[a-z]{2,3}(-[A-Za-z0-9]{1,8})*)/$', FileListView.as_view(), name='file_list'),
     url(r'^api/', include('mobetta.api.urls', namespace='api')),
 ]
+
+
+if apps.is_installed('mobetta.icu'):
+    from .icu.views import ICUFileDetailView, ICUFileListView
+
+    urlpatterns += [
+        url(r'^icu/language/(?P<lang_code>[a-z]{2,3}(-[A-Za-z0-9]{1,8})*)/$',
+            ICUFileListView.as_view(), name='icu_file_list'),
+        url(r'^icu/file/(?P<pk>\d+)/$', ICUFileDetailView.as_view(), name='icu_file_detail'),
+    ]
