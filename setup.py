@@ -21,6 +21,9 @@ setup(
     ],
     include_package_data=True,
     packages=find_packages(exclude=["tests"]),
+    extras_require={
+        'icu': ['PyICU'],
+    },
 
     # tests
     test_suite='runtests.runtests',
