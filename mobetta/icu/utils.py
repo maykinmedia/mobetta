@@ -31,6 +31,7 @@ def update_translations(icu_file, form_changes):
                     icu_file.contents[key] = change['to']
                     applied_changes.append((form, change))
                 else:
+                    change['current_value'] = icu_file.contents[key]
                     rejected_changes.append((form, change))
             else:
                 raise RuntimeError('Unexpected field changed!')

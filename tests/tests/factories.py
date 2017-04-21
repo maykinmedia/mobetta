@@ -4,7 +4,8 @@ from factory import DjangoModelFactory, SubFactory, fuzzy
 
 from mobetta.models import EditLog, MessageComment, TranslationFile
 
-hex_chars = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f']
+hex_chars = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f']
+
 
 class UserFactory(DjangoModelFactory):
 

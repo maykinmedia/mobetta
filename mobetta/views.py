@@ -214,6 +214,18 @@ class FileDetailView(FormView):
                     new_value=change['to'],
                 )
 
+    def handle_rejected_changes(self, changes):
+        for f, change in changes:
+            # Add an error message to the field as well as a message
+            # in the top of the view.
+            f.add_error(
+                change['field'],
+                _("This value was edited while you were editing it (new value: %s)") % change['po_value'])
+            messages.error(
+                self.request,
+                _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid'])
+            )
+
     def form_valid(self, form):
         changes = []
         for f in form:
@@ -225,17 +237,7 @@ class FileDetailView(FormView):
 
             # Add messages/errors about rejected changes
             if len(rejected_changes) > 0:
-                for f, change in rejected_changes:
-                    # Add an error message to the field as well as a message
-                    # in the top of the view.
-                    f.add_error(
-                        change['field'],
-                        _("This value was edited while you were editing it (new value: %s)") % change['po_value'])
-                    messages.error(
-                        self.request,
-                        _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid'])
-                    )
-
+                self.handle_rejected_changes(rejected_changes)
                 return self.form_invalid(form)
 
         return HttpResponseRedirect(self.get_success_url())

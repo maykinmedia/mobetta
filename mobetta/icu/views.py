@@ -102,3 +102,14 @@ class ICUFileDetailView(FileDetailView):
             }
             f.data = new_form_data
         return form
+
+    def handle_rejected_changes(self, changes):
+        for f, change in changes:
+            # Add an error message to the field as well as a message
+            # in the top of the view.
+            error_msg = _("This value was edited while you were editing it (new value: %s)") % change['current_value']
+            f.add_error('translation', error_msg)
+            messages.error(
+                self.request,
+                _("The translation for \"%s\" was edited while you were editing it") % change['msgid']
+            )
