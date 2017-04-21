@@ -23,6 +23,18 @@ setup(
     packages=find_packages(exclude=["tests"]),
     extras_require={
         'icu': ['PyICU'],
+        'test': [
+            'django_webtest',
+            'factory_boy',
+            'mock',
+            'pytest',
+            'pytest-cov',
+            'pytest-django',
+            'pytest-pep8',
+            'pytest-pylint',
+            'pytest-pythonpath',
+            'pytest-runner',
+        ]
     },
 
     # tests
