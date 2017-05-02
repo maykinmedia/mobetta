@@ -75,7 +75,7 @@ class ICUFileDetailView(FileDetailView):
         } for msgid, translation in entries]
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super(ICUFileDetailView, self).get_context_data(**kwargs)
         context.update({
             'fuzzy_filter': False
         })
