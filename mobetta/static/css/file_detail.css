@@ -35,3 +35,7 @@ ul.changelist-filters a {
 ul.changelist-filters a:link, ul.changelist-filters a:visited {
     text-decoration: none;
 }
+
+#changelist table thead th {
+    padding: 5px 10px;
+}

@@ -4,6 +4,7 @@
 {% load message_tags %}
 
 {% block extrastyle %}
+    <link rel="stylesheet" href="{% static 'admin/css/changelists.css' %}" type="text/css"/>
     <link rel="stylesheet" href="{% static 'css/file_detail.css' %}" type="text/css"/>
     {{ block.super }}
 {% endblock %}
@@ -28,37 +29,37 @@
 {% block content %}
     <div id="content-main">
 
-        <div class="module">
+        <div class="module" id="changelist">
 
-            <h2>{% trans 'Translations' %}</h2>
+            <h1>{% trans 'Translations' %}</h1>
 
             <div id="toolbar">
                 <form id="translation-search" action="" method="get">
-                    <div>
-                        <label for="searchbar"><img src="{% static 'admin/img/icon_searchbox.png' %}" alt="{% trans 'Search' %}" /></label>
-                        <input type="search" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
+                    <div id="changelist-search">
+                        <label for="searchbar"><img src="{% static 'admin/img/search.svg' %}" alt="{% trans 'Search' %}" /></label>
+                        <input type="text" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
                         <input type="submit" value="{% trans 'Go' %}" />
-
-                        <ul class="changelist-filters">
-                            {% block filters %}
-                            <li>
-                                <a href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
-                            </li>
-                            {% if fuzzy_filter %}
-                            <li>
-                                <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Fuzzy</a>
-                            </li>
-                            {% endif %}
-                            <li>
-                                <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Translated</a>
-                            </li>
-                            <li>
-                                <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Untranslated</a>
-                            </li>
-                            {% endblock filters %}
-                        </ul>
                     </div>
                 </form>
+
+                <ul class="changelist-filters">
+                    {% block filters %}
+                    <li>
+                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
+                    </li>
+                    {% if fuzzy_filter %}
+                    <li>
+                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Fuzzy</a>
+                    </li>
+                    {% endif %}
+                    <li>
+                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Translated</a>
+                    </li>
+                    <li>
+                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Untranslated</a>
+                    </li>
+                    {% endblock filters %}
+                </ul>
             </div>
 
             <form id="translation-edit" action="" method="post">
