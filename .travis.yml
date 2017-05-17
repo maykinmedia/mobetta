@@ -7,6 +7,10 @@ services:
 
 addons:
   postgresql: "9.4"
+  apt:
+    packages:
+      - python3-pyicu
+      - python-pyicu
 
 install:
   - pip install codecov coveralls tox
