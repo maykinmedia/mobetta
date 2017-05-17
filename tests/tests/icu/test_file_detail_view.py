@@ -102,3 +102,21 @@ def test_simultaneous_edits_blocked(django_app, real_icu_file):
     # Check the edit history: the rejected edit shouldn't be in there
     file_edits = real_icu_file.edit_logs.all()
     assert file_edits.count() == 1
+
+
+@pytest.mark.django_db
+def test_message_format_validated(django_app, real_icu_file):
+    """
+    Assert that submitted translations syntax is validated.
+    """
+    url = reverse('mobetta:icu_file_detail', kwargs={'pk': real_icu_file.pk})
+    user = AdminFactory.create()
+    response = django_app.get(url, user=user)
+    form = response.forms['translation-edit']
+    form['form-0-translation'] = 'Unclosed brace {'  # invalid syntax
+    response = form.submit()
+    assert response.status_code == 200
+    assert response.context['formset'].errors == [
+        {'translation': [_('Invalid message syntax')]},
+        {}
+    ]
