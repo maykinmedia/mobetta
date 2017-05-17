@@ -104,6 +104,12 @@ class CompilePoFilesView(RedirectView):
         return super(CompilePoFilesView, self).get(request, *args, **kwargs)
 
 
+def _entry_matches(regex, entry):
+    return (regex.search(entry.msgid) or
+            regex.search(entry.msgstr) or
+            (regex.search(entry.msgctxt) if entry.msgctxt else ''))
+
+
 class FileDetailView(FormView):
     model = TranslationFile
     template_name = 'mobetta/file_detail.html'
@@ -119,6 +125,9 @@ class FileDetailView(FormView):
     edit_log_model = EditLog
     success_url_pattern = 'mobetta:file_detail'
 
+    # callback to test if an entry matches
+    entry_matches = staticmethod(_entry_matches)
+
     @method_decorator(login_required)
     def dispatch(self, request, *args, **kwargs):
         self.translation_file = get_object_or_404(self.model, pk=kwargs['pk'])
@@ -129,14 +138,11 @@ class FileDetailView(FormView):
         return super(FileDetailView, self).dispatch(request, *args, **kwargs)
 
     def filter_by_search_tag(self, entries, tag):
-        regex = re.compile(tag, re.IGNORECASE)
-
-        def entry_matches(entry):
-            return (regex.search(entry.msgid) or
-                    regex.search(entry.msgstr) or
-                    (regex.search(entry.msgctxt) if entry.msgctxt else ''))
-
-        return (entry for entry in entries if entry_matches(entry))
+        try:
+            regex = re.compile(tag, re.IGNORECASE)
+        except re.error:  # invalid regex supplied TODO: better feedback
+            return ()
+        return (entry for entry in entries if self.entry_matches(regex, entry))
 
     def filter_by_type(self, pofile, type):
         filters = {

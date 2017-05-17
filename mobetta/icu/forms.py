@@ -32,17 +32,13 @@ class TranslationForm(forms.Form):
         return translation != old_translation
 
     def get_changes(self):
-        changes = []
-
         old_val = self.cleaned_data['old_translation']
         new_val = self.cleaned_data['translation']
-        if new_val != old_val:
-            changes.append({
-                'msgid': self.cleaned_data['msgid'],
-                'md5hash': self.cleaned_data['md5hash'],
-                'field': 'translation',
-                'from': old_val,
-                'to': new_val,
-            })
-
-        return changes
+        assert old_val != new_val
+        return [{
+            'msgid': self.cleaned_data['msgid'],
+            'md5hash': self.cleaned_data['md5hash'],
+            'field': 'translation',
+            'from': old_val,
+            'to': new_val,
+        }]

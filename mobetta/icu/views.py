@@ -18,6 +18,11 @@ class ICUFileListView(FileListView):
     template_name = 'mobetta/icu/file_list.html'
 
 
+def _entry_matches(regex, entry):
+    key, translation = entry
+    return regex.search(key) or regex.search(translation)
+
+
 class ICUFileDetailView(FileDetailView):
     model = ICUTranslationFile
     template_name = 'mobetta/icu/file_detail.html'
@@ -30,31 +35,23 @@ class ICUFileDetailView(FileDetailView):
     edit_log_model = EditLog
     success_url_pattern = 'mobetta:icu_file_detail'
 
-    def filter_by_type(self, icu_file, type):
-        filters = {
-            'translated': 'translated_entries',
-            'untranslated': 'untranslated_entries',
-        }
-        if type not in filters:
-            return icu_file
-        return getattr(icu_file, filters[type])
+    entry_matches = staticmethod(_entry_matches)
 
-    def filter_by_search_tag(self, entries, tag):  # TODO: check/test against invalid regexes
-        regex = re.compile(tag, re.IGNORECASE)
-
-        def entry_matches(entry):
-            return (regex.search(entry.msgid) or
-                    regex.search(entry.msgstr) or
-                    (regex.search(entry.msgctxt) if entry.msgctxt else ''))
-
-        return (entry for entry in entries if entry_matches(entry))
+    # def filter_by_type(self, icu_file, type):
+    #     filters = {
+    #         'translated': 'translated_entries',
+    #         'untranslated': 'untranslated_entries',
+    #     }
+    #     if type not in filters:
+    #         return icu_file
+    #     return getattr(icu_file, filters[type])
 
     def get_entries(self):
         entries = self.translation_file.get_icufile_object()
 
-        type_filter = self.request.GET.get('type')
-        if type_filter:
-            entries = self.filter_by_type(entries, type_filter)
+        # type_filter = self.request.GET.get('type')
+        # if type_filter:
+        #     entries = self.filter_by_type(entries, type_filter)
 
         search_filter = self.request.GET.get('search_tags')
         if search_filter:

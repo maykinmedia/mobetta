@@ -1,6 +1,8 @@
 {% extends "mobetta/file_detail.html" %}
 {% load i18n icu_message_tags %}
 
+{% block filters %} {# Currently not implemented #} {% endblock %}
+
 {% block formset %}
 <table cellspacing="0">
     <thead>
@@ -11,7 +13,8 @@
             {% if show_suggestions %}
               <th>{% trans "Suggestion" %}</th>
             {% endif %}
-            <th>{% trans "Comments" %}</th>
+            {# Currently not implemented #}
+            {# <th>{% trans "Comments" %}</th> #}
         </tr>
     </thead>
 
@@ -40,6 +43,8 @@
                   </td>
                 {% endif %}
 
+                {# Currently not implemented #}
+                {% comment %}
                 <td>
                   <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
                   <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
@@ -49,6 +54,7 @@
                     {% trans "View comments" %}
                   </button>
                 </td>
+                {% endcomment %}
             </tr>
             {{ form.old_translation }}
         {% endfor %}

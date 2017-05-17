@@ -57,6 +57,23 @@ def test_single_edit(django_app, real_icu_file):
 
 
 @pytest.mark.django_db
+def test_submit_with_no_changes(django_app, real_icu_file):
+    user = AdminFactory.create()
+    url = reverse('mobetta:icu_file_detail', kwargs={'pk': real_icu_file.pk})
+    response = django_app.get(url, user=user)
+    assert response.status_code == 200
+    form = response.forms['translation-edit']
+    form['form-0-translation'] = 'some.translation1'
+
+    response = form.submit().follow()
+    assert response.status_code == 200
+
+    # check that the file is unchanged
+    file_edits = real_icu_file.edit_logs.all()
+    assert file_edits.count() == 0
+
+
+@pytest.mark.django_db
 def test_simultaneous_edits_blocked(django_app, real_icu_file):
     """
     Go to the file detail view as two different users. Make an edit as one of the
@@ -120,3 +137,69 @@ def test_message_format_validated(django_app, real_icu_file):
         {'translation': [_('Invalid message syntax')]},
         {}
     ]
+
+
+@pytest.mark.django_db
+def test_filter_translations_by_tag(django_app, real_icu_file):
+    """
+    Assert that messages can be filtered by searching on key/translation.
+    """
+    user = AdminFactory.create()
+    url = reverse('mobetta:icu_file_detail', kwargs={'pk': real_icu_file.pk})
+    response = django_app.get(url, user=user)
+    assert response.status_code == 200
+
+    search_form = response.forms['translation-search']
+    search_form['search_tags'] = 'some.key1'
+
+    response = search_form.submit()
+    assert response.status_code == 200
+    search_form = response.forms['translation-search']
+    assert search_form['search_tags'].value == 'some.key1'
+
+    form = response.forms['translation-edit']
+    assert form['form-0-msgid'].value == 'some.key1'
+    assert form['form-0-translation'].value == 'some.translation1'
+    assert 'form-1-msgid' not in form.fields
+    assert 'form-1-translation' not in form.fields
+
+
+@pytest.mark.django_db
+def test_search_regex(django_app, real_icu_file):
+    user = AdminFactory.create()
+    url = reverse('mobetta:icu_file_detail', kwargs={'pk': real_icu_file.pk})
+    response = django_app.get(url, user=user)
+    assert response.status_code == 200
+
+    search_form = response.forms['translation-search']
+    search_form['search_tags'] = 'some.key\d+'
+
+    response = search_form.submit()
+    assert response.status_code == 200
+    search_form = response.forms['translation-search']
+    assert search_form['search_tags'].value == 'some.key\d+'
+
+    form = response.forms['translation-edit']
+    assert form['form-0-msgid'].value == 'some.key1'
+    assert form['form-0-translation'].value == 'some.translation1'
+    assert form['form-1-msgid'].value == 'some.key2'
+    assert form['form-1-translation'].value == 'some.translation2'
+
+
+@pytest.mark.django_db
+def test_search_invalid_regex(django_app, real_icu_file):
+    user = AdminFactory.create()
+    url = reverse('mobetta:icu_file_detail', kwargs={'pk': real_icu_file.pk})
+    response = django_app.get(url, user=user)
+    assert response.status_code == 200
+
+    search_form = response.forms['translation-search']
+    search_form['search_tags'] = 'some.key('
+    response = search_form.submit()
+    assert response.status_code == 200
+
+    form = response.forms['translation-edit']
+    assert 'form-0-msgid' not in form.fields
+    assert 'form-0-translation' not in form.fields
+    assert 'form-1-msgid' not in form.fields
+    assert 'form-1-translation' not in form.fields

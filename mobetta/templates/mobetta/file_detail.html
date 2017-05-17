@@ -40,6 +40,7 @@
                         <input type="submit" value="{% trans 'Go' %}" />
 
                         <ul class="changelist-filters">
+                            {% block filters %}
                             <li>
                                 <a href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
                             </li>
@@ -54,6 +55,7 @@
                             <li>
                                 <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Untranslated</a>
                             </li>
+                            {% endblock filters %}
                         </ul>
                     </div>
                 </form>
