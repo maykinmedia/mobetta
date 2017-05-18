@@ -34,6 +34,11 @@ setup(
             'pytest-pylint',
             'pytest-pythonpath',
             'pytest-runner',
+        ],
+        'docs': [
+            'Sphinx',
+            'sphinx-autobuild',
+            'sphinx_rtd_theme'
         ]
     },
 

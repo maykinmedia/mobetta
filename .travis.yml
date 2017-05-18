@@ -40,3 +40,6 @@ env:
   - TOXENV=py34-django111
   - TOXENV=py35-django111
   - TOXENV=pypy-django111
+
+  - TOXENV=isort
+  - TOXENV=docs
