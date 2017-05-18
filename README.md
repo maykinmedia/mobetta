@@ -2,65 +2,20 @@
 
 [![Build Status](https://travis-ci.org/maykinmedia/mobetta.svg?branch=master)](https://travis-ci.org/maykinmedia/mobetta)
 [![codecov](https://codecov.io/gh/maykinmedia/mobetta/branch/develop/graph/badge.svg)](https://codecov.io/gh/maykinmedia/mobetta)
+[![PyPI](https://img.shields.io/pypi/v/mobetta.svg)](https://pypi.python.org/pypi/mobetta)
 [![Lintly](https://lintly.com/gh/maykinmedia/mobetta/badge.svg)](https://lintly.com/gh/maykinmedia/mobetta/)
 
-Mobetta is a reusable app to manage translation files in Django.
+Mobetta is a reusable app to manage translation files in Django projects.
 
-It's inspired on django-rosetta and sports extra features such as comments on
-translations, improved stability and a couple of bugfixes. More features
-are planned.
+It's inspired on [django-rosetta](https://github.com/mbi/django-rosetta), but
+takes a more modern approach to problem and adds extra features, such as:
 
-## Installation
+* comments on translations
+* edit history
+* support for [ICU message format](https://formatjs.io/guides/message-syntax/)
+  with json catalogs
 
-Install with pip:
+## Documentation
 
-    pip install mobetta
-
-Next, hook up mobetta by adding it to installed apps:
-
-```python
-# settings.py
-
-INSTALLED_APPS = [
-    ...
-    'mobetta',
-    ...
-]
-```
-
-and add it to your root `urls.py`:
-
-```python
-# urls.py
-
-from django.conf.urls import include, url
-...
-
-import mobetta.urls
-
-urlpatterns = [
-    ...
-    url(r'^mobetta/', include(mobetta.urls.urlpatterns, 'mobetta', 'mobetta')),
-    ...
-]
-```
-
-Finally, run `migrate` to create the database tables:
-
-```bash
-python manage.py migrate
-```
-
-## Usage
-
-Mobetta needs to be aware of your translation files. To discover the files, use
-the management command:
-
-    python manage.py locate_translation_files
-
-
-## Notes ##
-
-### How Django loads translation files ###
-
-See the [django docs](https://docs.djangoproject.com/en/stable/topics/i18n/translation/#how-django-discovers-translations).
+See the [documentation on ReadTheDocs](http://mobetta.readthedocs.io/en/latest/)
+for installation and usage instructions.
