@@ -20,10 +20,6 @@ urlpatterns = [
 
 
 if apps.is_installed('mobetta.icu'):
-    from .icu.views import ICUFileDetailView, ICUFileListView
-
     urlpatterns += [
-        url(r'^icu/language/(?P<lang_code>[a-z]{2,3}(-[A-Za-z0-9]{1,8})*)/$',
-            ICUFileListView.as_view(), name='icu_file_list'),
-        url(r'^icu/file/(?P<pk>\d+)/$', ICUFileDetailView.as_view(), name='icu_file_detail'),
+        url(r'^icu/', include('mobetta.icu.urls')),
     ]
