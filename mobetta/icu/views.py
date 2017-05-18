@@ -1,24 +1,31 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.contrib import messages
-from django.core.exceptions import PermissionDenied
 from django.forms import formset_factory
-from django.http.response import HttpResponse
 from django.utils.translation import ugettext_lazy as _
-from django.views.generic import View
-from django.views.generic.detail import SingleObjectMixin
 
 from .. import formsets
-from ..access import can_translate_language
-from ..views import FileDetailView, FileListView
+from ..base_views import (
+    BaseFileDetailView, BaseFileDownloadView, BaseFileListView
+)
 from .forms import TranslationForm
 from .models import EditLog, ICUTranslationFile
 from .utils import update_translations
 
 
-class ICUFileListView(FileListView):
+class ICUFileListView(BaseFileListView):
     model = ICUTranslationFile
     template_name = 'mobetta/icu/file_list.html'
+
+
+class ICUFileDownloadView(BaseFileDownloadView):
+    model = ICUTranslationFile
+
+    def get_attachment_file_name(self, translation_file):
+        return '{}_{}.json'.format(
+            translation_file.name.lower(),
+            translation_file.language_code
+        )
 
 
 def _entry_matches(regex, entry):
@@ -26,31 +33,7 @@ def _entry_matches(regex, entry):
     return regex.search(key) or regex.search(translation)
 
 
-class ICUFileDownloadView(SingleObjectMixin, View):
-    model = ICUTranslationFile
-
-    def dispatch(self, request, *args, **kwargs):
-        """
-        Check that the user is allowed to download this translation.
-        """
-        language_code = self.get_object().language_code
-        if not can_translate_language(request.user, language_code):
-            raise PermissionDenied
-        return super(ICUFileDownloadView, self).dispatch(request, *args, **kwargs)
-
-    def get(self, request, *args, **kwargs):
-        translation_file = self.get_object()
-        with open(translation_file.filepath, 'r') as f:
-            content = f.read()
-        response = HttpResponse(content, content_type='application/json')
-        response['Content-Disposition'] = 'attachment; filename="{}_{}.json"'.format(
-            translation_file.name.lower(),
-            translation_file.language_code
-        )
-        return response
-
-
-class ICUFileDetailView(FileDetailView):
+class ICUFileDetailView(BaseFileDetailView):
     model = ICUTranslationFile
     template_name = 'mobetta/icu/file_detail.html'
     form_class = formset_factory(
