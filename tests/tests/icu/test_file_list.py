@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext as _
+from django.utils.six.moves.urllib.parse import urlparse
 
 import pytest
 
@@ -13,7 +14,9 @@ from ..factories import AdminFactory, UserFactory
 def test_login_required(django_app):
     url = reverse('mobetta:icu_file_list', kwargs={'lang_code': 'nl'})
     response = django_app.get(url, status=302)
-    assert response.location == '{}?next={}'.format(settings.LOGIN_URL, url)
+    redirect = urlparse(response.location)
+    assert redirect.path == settings.LOGIN_URL
+    assert redirect.query == 'next={}'.format(url)
 
 
 @pytest.mark.django_db
