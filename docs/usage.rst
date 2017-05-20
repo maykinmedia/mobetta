@@ -14,7 +14,7 @@ from ``.po`` files. Django does not support them (out of the box).
 After :ref:`installing <install-icu>` the ICU message plugin, you can still
 manage your translations with mobetta.
 
-Navigate to the translation interface (http://localhost:8000/admin/mobetta/)
+Navigate to the translation interface (localhost:8000/admin/mobetta/)
 and locate the ICU translation files. Create a new translation file, and point
 it to the JSON file containing the translations.
 

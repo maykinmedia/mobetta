@@ -13,7 +13,7 @@ Mobetta
     :target: http://travis-ci.org/maykinmedia/mobetta
 
 .. image:: https://codecov.io/gh/maykinmedia/mobetta/branch/develop/graph/badge.svg
-    :target: https://coveralls.io/github/maykinmedia/mobetta?branch=develop
+    :target: https://codecov.io/gh/maykinmedia/mobetta
 
 .. image:: https://img.shields.io/pypi/v/mobetta.svg
     :target: https://pypi.python.org/pypi/mobetta
@@ -76,7 +76,7 @@ Mobetta discovers your translation files with a management command::
 
     python manage.py locate_translation_files
 
-Open http://localhost:8000/admin/mobetta/ to manage your translations.
+Open localhost:8000/admin/mobetta/ to manage your translations.
 
 
 Notes
