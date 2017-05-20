@@ -1,13 +1,11 @@
-import re
+from __future__ import absolute_import, unicode_literals
 
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
-from django.core.urlresolvers import reverse, reverse_lazy
+from django.core.urlresolvers import reverse_lazy
 from django.forms import formset_factory
-from django.http import HttpResponseRedirect
-from django.http.response import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
@@ -15,13 +13,17 @@ from django.views.generic import FormView, ListView, RedirectView, TemplateView
 
 from mobetta import formsets, util
 from mobetta.access import can_translate, can_translate_language
-from mobetta.conf import settings as mobetta_settings
-from mobetta.forms import AddTranslatorForm, CommentForm, TranslationForm
+from mobetta.forms import AddTranslatorForm, TranslationForm
 from mobetta.models import EditLog, TranslationFile
 from mobetta.paginators import MovingRangePaginator
 
+from .base_views import (
+    BaseFileDetailView, BaseFileDownloadView, BaseFileListView
+)
+from .icu.mixins import ICULanguageListMixin
 
-class LanguageListView(TemplateView):
+
+class LanguageListView(ICULanguageListMixin, TemplateView):
 
     template_name = 'mobetta/language_list.html'
 
@@ -39,55 +41,23 @@ class LanguageListView(TemplateView):
         return language_tuples
 
     def get_context_data(self, *args, **kwargs):
-        ctx = super(LanguageListView, self).get_context_data(*args, **kwargs)
-
-        ctx.update({
-            'languages': self.get_languages()
-        })
-
-        return ctx
+        kwargs['languages'] = self.get_languages()
+        return super(LanguageListView, self).get_context_data(*args, **kwargs)
 
 
-def download_po_file(request, file_pk):
-    translation_file = get_object_or_404(TranslationFile, pk=int(file_pk))
-
-    with open(translation_file.filepath, 'r') as f:
-        content = f.read()
-
-    response = HttpResponse(content, content_type='text/plain')
-    response['Content-Disposition'] = 'attachment; filename="{}_{}.po"'.format(
-        translation_file.name,
-        translation_file.language_code
-    )
-
-    return response
-
-
-class FileListView(ListView):
-
+class FileDownloadView(BaseFileDownloadView):
     model = TranslationFile
-    context_object_name = 'files'
+
+    def get_attachment_file_name(self, translation_file):
+        return '{}_{}.po'.format(
+            translation_file.name,
+            translation_file.language_code
+        )
+
+
+class FileListView(BaseFileListView):
+    model = TranslationFile
     template_name = 'mobetta/file_list.html'
-
-    @method_decorator(login_required)
-    def dispatch(self, request, lang_code, *args, **kwargs):
-        self.language_code = lang_code
-        if not can_translate_language(request.user, self.language_code):
-            raise PermissionDenied
-
-        return super(FileListView, self).dispatch(request, *args, **kwargs)
-
-    def get_queryset(self):
-        return TranslationFile.objects.filter(language_code=self.language_code)
-
-    def get_context_data(self, *args, **kwargs):
-        ctx = super(FileListView, self).get_context_data(*args, **kwargs)
-
-        ctx.update({
-            'language_name': dict(settings.LANGUAGES)[self.language_code]
-        })
-
-        return ctx
 
 
 class CompilePoFilesView(RedirectView):
@@ -107,7 +77,14 @@ class CompilePoFilesView(RedirectView):
         return super(CompilePoFilesView, self).get(request, *args, **kwargs)
 
 
-class FileDetailView(FormView):
+def _entry_matches(regex, entry):
+    return (regex.search(entry.msgid) or
+            regex.search(entry.msgstr) or
+            (regex.search(entry.msgctxt) if entry.msgctxt else ''))
+
+
+class FileDetailView(BaseFileDetailView):
+    model = TranslationFile
     template_name = 'mobetta/file_detail.html'
     form_class = formset_factory(
         TranslationForm,
@@ -118,27 +95,11 @@ class FileDetailView(FormView):
     paginate_by = 20
     translations_per_page = 20
 
-    @method_decorator(login_required)
-    def dispatch(self, request, *args, **kwargs):
-        self.translation_file = get_object_or_404(
-            TranslationFile,
-            pk=self.request.resolver_match.kwargs['pk']
-        )
+    edit_log_model = EditLog
+    success_url_pattern = 'mobetta:file_detail'
 
-        if not can_translate_language(request.user, self.translation_file.language_code):
-            raise PermissionDenied
-
-        return super(FileDetailView, self).dispatch(request, *args, **kwargs)
-
-    def filter_by_search_tag(self, entries, tag):
-        regex = re.compile(tag, re.IGNORECASE)
-
-        def entry_matches(entry):
-            return (regex.search(entry.msgid) or
-                    regex.search(entry.msgstr) or
-                    (regex.search(entry.msgctxt) if entry.msgctxt else ''))
-
-        return (entry for entry in entries if entry_matches(entry))
+    # callback to test if an entry matches
+    entry_matches = staticmethod(_entry_matches)
 
     def filter_by_type(self, pofile, type):
         filters = {
@@ -148,7 +109,7 @@ class FileDetailView(FormView):
         }
         return getattr(pofile, filters[type])() if type in filters else pofile
 
-    def form_invalid(self, form):
+    def populate_old_data(self, form):
         # Populate the old_<fieldname> values with the file's current translation/context
         pofile = self.translation_file.get_polib_object()
 
@@ -177,134 +138,51 @@ class FileDetailView(FormView):
                 for k in form_data.keys()
             }
             f.data = new_form_data
+        return form
 
-        return self.render_to_response(self.get_context_data(form=form))
+    def save_changes(self, changes):
+        pofile = self.translation_file.get_polib_object()
 
-    def form_valid(self, form):
-        changes = []
-        for f in form:
-            if f.is_updated():
-                changes.append((f, f.get_changes()))
+        applied_changes, rejected_changes = util.update_translations(pofile, changes)
 
-        if any(changes):
-            pofile = self.translation_file.get_polib_object()
+        # Only update the metadata if we've actually made some changes
+        if len(applied_changes) > 0:
+            first_name = getattr(self.request.user, 'first_name', None)
+            last_name = getattr(self.request.user, 'last_name', None)
+            util.update_metadata(pofile, first_name, last_name, self.request.user.email)
 
-            applied_changes, rejected_changes = util.update_translations(pofile, changes)
+            pofile.save()
 
-            # Only update the metadata if we've actually made some changes
-            if len(applied_changes) > 0:
-                if hasattr(self.request.user, 'first_name'):
-                    first_name = self.request.user.first_name
-                else:
-                    first_name = None
+            messages.success(self.request, _('Changed %d translations') % len(applied_changes))
 
-                if hasattr(self.request.user, 'last_name'):
-                    last_name = self.request.user.last_name
-                else:
-                    last_name = None
+            # Update edit logs with the applied_changes
+            self.log_edits(applied_changes)
 
-                util.update_metadata(
-                    pofile,
-                    first_name,
-                    last_name,
-                    self.request.user.email,
-                )
+        return rejected_changes
 
-                pofile.save()
+    def handle_rejected_changes(self, changes):
+        for f, change in changes:
+            # Add an error message to the field as well as a message
+            # in the top of the view.
+            f.add_error(
+                change['field'],
+                _("This value was edited while you were editing it (new value: %s)") % change['po_value'])
+            messages.error(
+                self.request,
+                _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid'])
+            )
 
-                messages.success(self.request, _('Changed %d translations') % len(applied_changes))
-
-                # Update edit logs with the applied_changes
-                if mobetta_settings.USE_EDIT_LOGGING:
-                    for f, change in applied_changes:
-                        EditLog.objects.create(
-                            user=self.request.user,
-                            file_edited=self.translation_file,
-                            msghash=change['md5hash'],
-                            msgid=change['msgid'],
-                            fieldname=change['field'],
-                            old_value=change['from'],
-                            new_value=change['to'],
-                        )
-
-            # Add messages/errors about rejected changes
-            if len(rejected_changes) > 0:
-                for f, change in rejected_changes:
-                    # Add an error message to the field as well as a message
-                    # in the top of the view.
-                    f.add_error(
-                        change['field'],
-                        _("This value was edited while you were editing it (new value: %s)") % change['po_value'])
-                    messages.error(
-                        self.request,
-                        _("The %s for \"%s\" was edited while you were editing it") % (change['field'], change['msgid'])
-                    )
-
-                return self.form_invalid(form)
-
-        return HttpResponseRedirect(self.get_success_url())
-
-    def get_context_data(self, **kwargs):
-        ctx = super(FileDetailView, self).get_context_data(**kwargs)
-
-        translations = self.get_translations()
-
-        # Paginator(translations, self.translations_per_page)
-        paginator = self.get_paginator(translations, self.paginate_by)
-        page = self.get_page(paginator)
-
-        ctx['formset'] = ctx.pop('form')
-        ctx['formset'].initial = [
-            {
-                'msgid': translation['original'],
-                'translation': translation['translated'],
-                'old_translation': translation['translated'],
-                'fuzzy': translation['fuzzy'],
-                'old_fuzzy': translation['fuzzy'],
-                'context': translation['context'],
-                'occurrences': translation['occurrences'],
-                'md5hash': translation['md5hash'],
-            }
-            for translation in page
-        ]
-
-        if mobetta_settings.USE_MS_TRANSLATE:
-            ctx['show_suggestions'] = True
-
-        # Keep track of the query parameters for the url of the pages.
-        pagination_query_params = self.request.GET.copy()
-        if 'page' in pagination_query_params:
-            pagination_query_params.pop('page')
-
-        # Keep track of the query parameters for the url of the filters.
-        filter_query_params = pagination_query_params.copy()
-        if 'type' in filter_query_params:
-            filter_query_params.pop('type')
-
-        # Keep track of the search tags
-        search_tags = ''
-        query_params = self.request.GET.copy()
-        if 'search_tags' in query_params:
-            search_tags = ' '.join(query_params.copy().pop('search_tags'))
-
-        # Prepopulate comment form with the current translation file
-        comment_form = CommentForm(initial={
-            'translation_file': self.translation_file,
-        })
-
-        ctx.update({
-            'file': self.translation_file,
-            'filter_query_params': filter_query_params.urlencode(),
-            'is_paginated': paginator.num_pages > 1,
-            'object_list': page.object_list,
-            'page_obj': page,
-            'pagination_query_params': pagination_query_params.urlencode(),
-            'paginator': paginator,
-            'search_tags': search_tags,
-            'comment_form': comment_form,
-        })
-
-        return ctx
+    def get_formset_initial(self, page):
+        return [{
+            'msgid': translation['original'],
+            'translation': translation['translated'],
+            'old_translation': translation['translated'],
+            'fuzzy': translation['fuzzy'],
+            'old_fuzzy': translation['fuzzy'],
+            'context': translation['context'],
+            'occurrences': translation['occurrences'],
+            'md5hash': translation['md5hash'],
+        } for translation in page]
 
     def get_entries(self):
         entries = self.translation_file.get_polib_object()
@@ -318,24 +196,6 @@ class FileDetailView(FormView):
             entries = self.filter_by_search_tag(entries, search_filter)
 
         return entries
-
-    def get_page(self, paginator):
-        try:
-            page = paginator.page(self.request.GET.get('page'))
-        except:
-            page = paginator.page(1)
-
-        return page
-
-    def get_paginator(self, queryset, per_page, orphans=0, allow_empty_first_page=True):
-        return self.paginator_class(queryset, per_page, orphans, allow_empty_first_page)
-
-    def get_success_url(self):
-        if self.request.GET:
-            return "{}?{}".format(
-                reverse('mobetta:file_detail', args=(self.translation_file.pk,)),
-                self.request.GET.urlencode())
-        return reverse('mobetta:file_detail', args=(self.translation_file.pk,))
 
     def get_translations(self):
         entries = self.get_entries()

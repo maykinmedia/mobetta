@@ -1,27 +1,30 @@
+from __future__ import absolute_import, unicode_literals
+
 import os.path
 
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
 
 import polib
 
-from mobetta.util import app_name_from_filepath
+from .util import app_name_from_filepath
 
 # UserModel represents the model used by the project
 UserModel = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
 
 
+@python_2_unicode_compatible
 class TranslationFile(models.Model):
-
     name = models.CharField(max_length=512, blank=False, null=False)
     filepath = models.CharField(max_length=1024, blank=False, null=False)
-    language_code = models.CharField(max_length=32, blank=False, null=False)
+    language_code = models.CharField(max_length=32, choices=settings.LANGUAGES, blank=False)
     created = models.DateTimeField(auto_now_add=True)
     last_compiled = models.DateTimeField(null=True)
     is_valid = models.BooleanField(default=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return "{} ({})".format(self.name, self.filepath)
 
     @property
@@ -69,11 +72,10 @@ class TranslationFile(models.Model):
         return dict(settings.LANGUAGES)[self.language_code]
 
 
-class EditLog(models.Model):
+class BaseEditLog(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(UserModel)
-    file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
+    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss')
     msgid = models.CharField(max_length=256, null=False)
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
@@ -86,6 +88,7 @@ class EditLog(models.Model):
     new_value = models.CharField(max_length=255, blank=True, null=True)
 
     class Meta:
+        abstract = True
         ordering = ['created']
 
     def __unicode__(self):
@@ -98,11 +101,13 @@ class EditLog(models.Model):
         )
 
 
-class MessageComment(models.Model):
+class EditLog(BaseEditLog):
+    file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
 
+
+class BaseMessageComment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(UserModel)
-    translation_file = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='comments')
+    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss')
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
     """
@@ -112,6 +117,7 @@ class MessageComment(models.Model):
     body = models.CharField(max_length=1024, blank=False, null=False)
 
     class Meta:
+        abstract = True
         ordering = ['created']
 
     def __unicode__(self):
@@ -121,3 +127,7 @@ class MessageComment(models.Model):
             self.translation_file.language_code,
             self.created.strftime('%d-%m-%Y')
         )
+
+
+class MessageComment(BaseMessageComment):
+    translation_file = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='comments')

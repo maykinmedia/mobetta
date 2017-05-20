@@ -1,0 +1,63 @@
+{% extends "mobetta/file_detail.html" %}
+{% load i18n icu_message_tags %}
+
+{% block filters %} {# Currently not implemented #} {% endblock %}
+
+{% block formset %}
+<table cellspacing="0">
+    <thead>
+        <tr>
+            <th>{% trans "Original" %}</th>
+            <th>{% trans "Translation" %}</th>
+            <th>{% trans "Last edited" %}</th>
+            {% if show_suggestions %}
+              <th>{% trans "Suggestion" %}</th>
+            {% endif %}
+            {# Currently not implemented #}
+            {# <th>{% trans "Comments" %}</th> #}
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for form in formset %}
+            <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
+                <td>
+                  {{ form.msgid }}
+                  {{ form.md5hash }}
+                  {{ form.msgid.value|highlight_tokens|safe|linebreaksbr }}
+                </td>
+                <td>
+                  {{ form.translation }}
+                  {{ form.translation.errors }}
+                  {{ form.non_field_errors }}
+                </td>
+                <td>
+                  {% last_edit file form.md5hash.value %}
+                </td>
+
+                {% if show_suggestions %}
+                  <td>
+                    <button type="button" class="show-suggestion" data-form-prefix="{{ form.prefix }}" data-url="{% url 'mobetta:api:translation_suggestion' %}?msgid={{ form.msgid.value|iriencode }}&language_code={{ file.language_code }}">Show suggestion</button>
+                    <span class="auto-suggestion" id="id_{{ form.prefix }}-auto-suggestion"></span>
+                    <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
+                  </td>
+                {% endif %}
+
+                {# Currently not implemented #}
+                {% comment %}
+                <td>
+                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
+                  <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
+                    {% trans "Add comment" %}
+                  </button>
+                  <button type="button" class="view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
+                    {% trans "View comments" %}
+                  </button>
+                </td>
+                {% endcomment %}
+            </tr>
+            {{ form.old_translation }}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock formset %}

@@ -1,0 +1,44 @@
+{% extends "mobetta/base.html" %}
+{% load i18n %}
+
+{% block pagetitle %}{{ block.super }} - {% trans "Translation files" %}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; {{ language_name }}
+</div>
+{% endblock %}
+
+{% block content %}
+<h3>{% trans "Translation files for" %} {{ language_name }}</h3>
+<hr/>
+<br/>
+
+<table cellspacing="0">
+    <thead>
+        <tr>
+            <th>{% trans "App name" %}</th>
+            <th>{% trans "Total messages" %}</th>
+            <th>{% trans "Filename" %}</th>
+            <th>{% trans "Created" %}</th>
+            <th>{% trans "Edit history" %}</th>
+            <th>{% trans "JSON file" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for file in files %}
+          {% with file.get_statistics as stats %}
+            <tr class="{% cycle 'row1' 'row2' %}" id="file_detail_{{ file.pk }}">
+                <td><a href="{% url 'mobetta:icu_file_detail' pk=file.pk %}">{{ file.name }}</a></td>
+                <td>{{ stats.total_messages }}</td>
+                <td>{{ file.filepath }}</td>
+                <td>{{ file.created }}</td>
+                <td><a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a></td>
+                <td><a href="{% url 'mobetta:icu_download' pk=file.pk %}" download="{{ file.name|lower }}_{{ file.language_code }}.json">{% trans 'Download' %}</a></td>
+            </tr>
+          {% endwith %}
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock content %}
