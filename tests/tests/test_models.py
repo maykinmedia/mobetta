@@ -4,7 +4,9 @@ from django.test import TestCase
 
 from mobetta.models import TranslationFile
 
-from .factories import EditLogFactory, MessageCommentFactory, TranslationFileFactory
+from .factories import (
+    EditLogFactory, MessageCommentFactory, TranslationFileFactory
+)
 from .utils import POFileTestCase
 
 

@@ -1,5 +1,6 @@
 include LICENSE
 include README.md
+include docs/index.rst
 recursive-exclude tests *
 recursive-include mobetta/templates *
 recursive-include mobetta/static *

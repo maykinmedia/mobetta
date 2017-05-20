@@ -1,12 +1,9 @@
+import importlib
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 
 from mobetta.conf import settings as mobetta_settings
-
-try:
-    import importlib
-except ImportError:
-    from django.utils import importlib
 
 
 def can_translate(user):
@@ -39,7 +36,8 @@ def is_superuser_staff_or_in_translators_group(user):
             return user.groups.filter(name='translators').exists()
     except AttributeError:
         if not hasattr(user, 'is_authenticated') or not hasattr(user, 'is_superuser') or not hasattr(user, 'groups'):
-            raise ImproperlyConfigured('If you are using custom User Models you must implement a custom authentication method for Mobetta.')
+            raise ImproperlyConfigured('If you are using custom User Models you must '
+                                       'implement a custom authentication method for Mobetta.')
         raise
 
 
@@ -56,5 +54,6 @@ def can_translate_language(user, langid):
 
     except AttributeError:
         if not hasattr(user, 'is_authenticated') or not hasattr(user, 'is_superuser') or not hasattr(user, 'groups'):
-            raise ImproperlyConfigured('If you are using custom User Models you must implement a custom authentication method for Mobetta.')
+            raise ImproperlyConfigured('If you are using custom User Models you must '
+                                       'implement a custom authentication method for Mobetta.')
         raise

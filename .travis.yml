@@ -1,4 +1,5 @@
 language: python
+dist: trusty
 python:
   - "3.5"
 
@@ -7,6 +8,10 @@ services:
 
 addons:
   postgresql: "9.4"
+  apt:
+    packages:
+      - python3-pyicu
+      - python-pyicu
 
 install:
   - pip install codecov coveralls tox
@@ -19,11 +24,22 @@ env:
   - TOXENV=py27-django18
   - TOXENV=py34-django18
   - TOXENV=py35-django18
+  - TOXENV=pypy-django18
 
   - TOXENV=py27-django19
   - TOXENV=py34-django19
   - TOXENV=py35-django19
+  - TOXENV=pypy-django19
 
   - TOXENV=py27-django110
   - TOXENV=py34-django110
   - TOXENV=py35-django110
+  - TOXENV=pypy-django110
+
+  - TOXENV=py27-django111
+  - TOXENV=py34-django111
+  - TOXENV=py35-django111
+  - TOXENV=pypy-django111
+
+  - TOXENV=isort
+  - TOXENV=docs

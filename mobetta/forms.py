@@ -25,15 +25,20 @@ class TranslationForm(forms.Form):
     )
 
     def clean(self):
-        cleaned_data = super(TranslationForm, self).clean()
+        super(TranslationForm, self).clean()
+        self.check_tokens()
 
+    def check_tokens(self):
+        """
+        Validate that the same amount of interpolation tokens are present.
+        """
         regex = '|'.join(get_token_regexes())
 
-        source_format_tokens = re.findall(regex, cleaned_data['msgid'])
-        translation_format_tokens = re.findall(regex, cleaned_data['translation'])
+        source_format_tokens = re.findall(regex, self.cleaned_data['msgid'])
+        translation_format_tokens = re.findall(regex, self.cleaned_data['translation'])
 
         # Check if there is the same number of formating tokens in the source and the translation.
-        if len(source_format_tokens) != len(translation_format_tokens) and cleaned_data['translation']:
+        if len(source_format_tokens) != len(translation_format_tokens) and self.cleaned_data['translation']:
             error = 'There should be {} formating token(s) in the source text and the translation.'
             tokens = len(source_format_tokens)
             raise forms.ValidationError(error.format(tokens))
