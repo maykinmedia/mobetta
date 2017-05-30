@@ -1,11 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 
-import hashlib
-
 from django.contrib import messages
 from django.forms import formset_factory
 from django.utils.translation import ugettext_lazy as _
-from django.utils import six
 
 from .. import formsets
 from ..base_views import (
@@ -79,8 +76,7 @@ class ICUFileDetailView(BaseFileDetailView):
         entries = self.get_entries()
         return [{
             'msgid': msgid,
-            # unique, but length constraints on the model
-            'md5hash': hashlib.md5(six.text_type(msgid).encode('utf-8')).hexdigest(),
+            'md5hash': msgid,  # unique already
             'translation': translation,
             'old_translation': translation,
         } for msgid, translation in entries]

@@ -5,7 +5,7 @@ from .validators import validate_icu_syntax
 
 class TranslationForm(forms.Form):
     msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
-    md5hash = forms.CharField(max_length=32, widget=forms.HiddenInput())
+    md5hash = forms.CharField(widget=forms.HiddenInput())
     translation = forms.CharField(
         widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False,
     )
