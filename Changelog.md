@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+### icu
+
+* better solution dealing with max_length issue below
+
 ## 0.2.2
 
 ### icu
