@@ -4,3 +4,4 @@ include docs/index.rst
 recursive-exclude tests *
 recursive-include mobetta/templates *
 recursive-include mobetta/static *
+recursive-include mobetta/icu/templates *
