@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.2
+
+### icu
+
+* hash msgid to stay under `CharField.max_length`
+
+## 0.2.1
+
+### icu
+
+* fix packaging: icu templates were not included
+
 ## version 0.1.4
 
 - Added a compile all files button
