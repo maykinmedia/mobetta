@@ -1,3 +1,6 @@
+$black: #000000;
+$white: #ffffff;
+
 // color for error feedback
 $error-color: #bb0000 !default;
 
@@ -6,4 +9,4 @@ $format-token-color: #ff0000 !default;
 
 // close button for modals
 $btn-close-color: #aaaaaa !default;
-$btn-close-color-hover: #000000 !default;
+$btn-close-color-hover: $black !default;
