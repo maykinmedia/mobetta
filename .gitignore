@@ -20,10 +20,11 @@ docs/_build
 docs/_static
 docs/_templates
 
+# test (generated) files
 tests/locale/nl/LC_MESSAGES/django\.mo
-
 \.cache/v/cache/lastfailed
-
 coverage\.xml
-
 junit\.xml
+
+# frontend tooling
+node_modules
