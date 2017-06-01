@@ -1,3 +1,13 @@
+.btn-close {
+  color: #aaaaaa;
+  cursor: pointer;
+  float: right;
+  font-size: 28px;
+  font-weight: bold; }
+  .btn-close:hover, .btn-close:focus {
+    color: #000000;
+    text-decoration: none; }
+
 .format-token {
   font-weight: bold;
   color: #ff0000; }
@@ -34,19 +44,6 @@
     width: 80%;
 }
 */
-/* The close button */
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold; }
-
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer; }
-
 /* Modal Header */
 .modal-header {
   padding: 2px 16px;
