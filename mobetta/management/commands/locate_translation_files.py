@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 from django.core.management import BaseCommand
 
 from mobetta.models import TranslationFile
@@ -18,6 +19,9 @@ class Command(BaseCommand):
         """
         Find all translation files and populate the database with them.
         """
+
+        if not hasattr(settings, 'LANGUAGES') or not settings.LANGUAGES:
+            raise ImproperlyConfigured("mobetta needs the `LANGUAGES` setting.")
 
         for lang_code, lang_name in settings.LANGUAGES:
             filepaths = find_pofiles(lang_code, third_party_apps=options['include_third_party'])
