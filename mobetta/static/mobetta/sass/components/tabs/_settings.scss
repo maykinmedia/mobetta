@@ -1,0 +1,17 @@
+$_tab-padding: 0.2em !default;
+
+$tab-shadow: 0px 0px 2px 0 rgba($black, .1),
+             2px 2px 3px 0 rgba($black, .1) !default;
+
+$tab-header-offset: .4em;
+$tab-header-line-height: 2em !default;
+$tab-header-background-color: #79aec8 !default;
+$tab-header-background-color--active: #417690 !default;
+$tab-header-padding: $_tab-padding 1em !default;
+$tab-header-padding--active: ($_tab-padding + $tab-header-offset/2) 1em !default;
+$tab-header-height: (2 * $_tab-padding + $tab-header-line-height) !default;
+$tab-header-border-radius: 3px 3px 0 0 !default;
+
+$tab-content-background-color: #fbfbfb;
+$tab-content-border-radius: 0 0 2px 2px;
+$tab-content-padding: 1em;

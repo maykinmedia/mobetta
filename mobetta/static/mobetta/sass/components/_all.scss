@@ -1,9 +1,14 @@
+// general purpose components
 @import "button";
 @import "button-group";
 @import "btn-close";
-
-@import "format-token";
 @import "errorlist";
-@import "auto-suggestion-error";
 
+// complexer components
 @import "modal/all";
+@import "tabs/all";
+
+// specific components
+@import "auto-suggestion-error";
+@import "format-token";
+@import "language-list";
