@@ -11,42 +11,12 @@
     <a class="button" href="{% url 'mobetta:compile_po_files' %}">{% trans 'Compile all po files' %}</a>
 </div>
 
-<table>
-  <thead>
-    <tr>
-      <th>{% trans "Language name" %}</th>
-      <th>{% trans "Number of files" %}</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for lang_code, lang_name, file_count in languages %}
-      <tr>
-        <td><a href="{% url 'mobetta:file_list' lang_code=lang_code %}">{{ lang_name }}</a></td>
-        <td>{{ file_count }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% include "mobetta/include/language_list.html" with url_name='mobetta:file_list' object_list=languages only %}
 
 {% if icu_languages %}
-<h3 style="margin-top: 20px;">{% trans "ICU formatted languages" %}</h3>
-<hr/>
-
-<table>
-  <thead>
-    <tr>
-      <th>{% trans "Language name" %}</th>
-      <th>{% trans "Number of files" %}</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for lang_code, lang_name, file_count in icu_languages %}
-      <tr>
-        <td><a href="{% url 'mobetta:icu_file_list' lang_code=lang_code %}">{{ lang_name }}</a></td>
-        <td>{{ file_count }}</td>
-      </tr>
-    {% endfor %}
-  </tbody>
-</table>
+    <h3 style="margin-top: 20px;">{% trans "ICU formatted languages" %}</h3>
+    <hr/>
+    {% include "mobetta/include/language_list.html" with url_name='mobetta:icu_file_list' object_list=icu_languages only %}
 {% endif %}
+
 {% endblock content %}

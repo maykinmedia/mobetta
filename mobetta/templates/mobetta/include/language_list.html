@@ -1,0 +1,20 @@
+{% load i18n %}
+{# Requires url_name and object_list to be passed in the context #}
+<table class="language-list">
+    <thead>
+        <tr>
+            <th class="language-list__header">{% trans "Language name" %}</th>
+            <th class="language-list__header">{% trans "Number of files" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lang_code, lang_name, file_count in object_list %}
+            <tr class="language-list__row">
+                <td class="language-list__lang-name">
+                    <a href="{% url url_name lang_code=lang_code %}">{{ lang_name }}</a>
+                </td>
+                <td class="language-list__no-files">{{ file_count }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
