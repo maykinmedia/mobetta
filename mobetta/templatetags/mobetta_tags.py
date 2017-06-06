@@ -1,3 +1,5 @@
+from __future__ import absolute_import, division, unicode_literals
+
 from django import template
 from django.template.base import token_kwargs
 
