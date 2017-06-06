@@ -14,6 +14,15 @@
     top: 0;
     opacity: 1; } }
 
+.language-list, .file-list {
+  table-layout: fixed;
+  border-collapse: collapse;
+  width: 100%;
+  border: solid 1px #eeeeee; }
+  .language-list__header, .file-list__header {
+    font-weight: 600;
+    padding: 1em; }
+
 .button,
 .btn {
   display: inline-block;
@@ -165,50 +174,6 @@
   font-weight: bold;
   color: #ff0000; }
 
-.language-list {
-  border-collapse: collapse;
-  width: 100%; }
-  .language-list__row:nth-child(even) {
-    background-color: rgba(236, 237, 245, 0.5); }
-  .language-list__header {
-    padding: 1em;
-    font-size: 1em;
-    font-weight: 600;
-    text-decoration: underline; }
-  .language-list__lang-name {
-    font-weight: 600;
-    padding: 1em;
-    text-transform: uppercase; }
-  .language-list__no-files {
-    padding: 1em; }
-
-.file-list {
-  table-layout: fixed;
-  border-collapse: collapse;
-  width: 100%;
-  -webkit-box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
-  box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
-  border: solid 1px #eeeeee; }
-  .file-list td {
-    padding: .75em;
-    font-size: .9em;
-    vertical-align: middle; }
-  .file-list__header {
-    padding: .75em;
-    font-weight: 600;
-    font-size: .9em; }
-  .file-list__appname {
-    width: 10%;
-    font-weight: 600;
-    text-transform: uppercase; }
-  .file-list__stat {
-    width: 5%; }
-  .file-list__filename {
-    max-width: 200px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; }
-
 .progress-bar {
   min-height: 1em;
   -webkit-box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
@@ -228,3 +193,36 @@
       background: #6fcc74; }
     .progress-bar__bar--complete {
       background: #6fcc74; }
+
+.language-list__header {
+  font-size: 1em;
+  text-decoration: underline; }
+
+.language-list__lang-name {
+  font-weight: 600;
+  padding: 1em;
+  text-transform: uppercase; }
+
+.language-list__no-files {
+  padding: 1em; }
+
+.file-list {
+  -webkit-box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1); }
+  .file-list td {
+    padding: .75em;
+    font-size: .9em;
+    vertical-align: middle; }
+  .file-list__header {
+    font-size: .9em; }
+  .file-list__appname {
+    width: 10%;
+    font-weight: 600;
+    text-transform: uppercase; }
+  .file-list__stat {
+    width: 5%; }
+  .file-list__filename {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; }

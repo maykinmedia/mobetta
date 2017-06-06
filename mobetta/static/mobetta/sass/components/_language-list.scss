@@ -1,19 +1,10 @@
-$language-list-even-color: rgba(#ecedf5, .5) !default;
-
 .language-list {
-  border-collapse: collapse;
-  width: 100%;
-
-  &__row {
-    &:nth-child(even) {
-      background-color: $language-list-even-color;
-    }
-  }
+  @extend %table;
 
   &__header {
-    padding: 1em;
+    @extend %table__header;
+
     font-size: 1em;
-    font-weight: 600;
     text-decoration: underline;
   }
 

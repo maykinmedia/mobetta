@@ -1,3 +1,6 @@
+// base components
+@import "table";
+
 // general purpose components
 @import "button";
 @import "button-group";
@@ -10,6 +13,7 @@
 
 @import "auto-suggestion-error";
 @import "format-token";
+@import "progress-bar";
 @import "language-list";
 @import "file-list";
-@import "progress-bar";
+@import "file-detail";

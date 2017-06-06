@@ -9,7 +9,7 @@
     </thead>
     <tbody>
         {% for lang_code, lang_name, file_count in object_list %}
-            <tr class="language-list__row">
+            <tr class="language-list__row {% cycle 'row1' 'row2' %}">
                 <td class="language-list__lang-name">
                     <a href="{% url url_name lang_code=lang_code %}">{{ lang_name }}</a>
                 </td>

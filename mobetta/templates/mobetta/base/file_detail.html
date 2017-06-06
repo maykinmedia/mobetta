@@ -1,0 +1,79 @@
+{% extends "mobetta/base.html" %}
+{% load static i18n message_tags mobetta_tags %}
+
+
+{% block extrastyle %}
+    <link rel="stylesheet" href="{% static 'admin/css/changelists.css' %}" type="text/css"/>
+    <link rel="stylesheet" href="{% static 'css/file_detail.css' %}" type="text/css"/>
+    {{ block.super }}
+{% endblock %}
+
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type="text/javascript" src="{% static 'js/file_detail.js' %}"></script>
+{% endblock extrahead %}
+
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; <a href="{% url 'mobetta:file_list' lang_code=file.language_code %}">{{ file.get_language_name }}</a>
+  &rsaquo; {{ file.filepath }}
+</div>
+{% endblock %}
+
+
+{% block content %}
+<h1>{% trans 'Translations' %}</h1>
+<div id="content-main">
+
+    <ul class="object-tools">
+        {% block filters %}
+        <li>
+            <a class="historylink" href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">
+                {% trans "All" %}
+            </a>
+        </li>
+        {% if fuzzy_filter %}
+        <li>
+            <a class="historylink" href="{% url 'mobetta:file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">
+                {% trans "Fuzzy" %}
+            </a>
+        </li>
+        {% endif %}
+        <li>
+            <a class="historylink" href="{% url 'mobetta:file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">
+                {% trans "Translated" %}
+            </a>
+        </li>
+        <li>
+            <a class="historylink" href="{% url 'mobetta:file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">
+                {% trans "Untranslated" %}
+            </a>
+        </li>
+        {% endblock filters %}
+    </ul>
+
+    {% block form %}
+        Actual translation formset here
+    {% endblock form %}
+
+</div>
+
+{% modal id='add-comment' title=_('Add a comment') %}
+    <form class="comment-form" data-submiturl="{% url 'mobetta:api:messagecomment-list' %}" data-form-prefix="">
+        {% csrf_token %}
+        {{ comment_form.translation_file }}
+        {{ comment_form.msghash }}
+        {{ comment_form.body }}
+        <p><span class="errorlist" ></span></p>
+        <button>{% trans "Submit" %}</button>
+    </form>
+{% endmodal %}
+
+{% modal id='view-comments' title='&quot;<span class="comment-msgid"></span>&quot;' %}
+    <p>{% trans "Comments" %}</p>
+    <ul class="comments-list"></ul>
+{% endmodal %}
+{% endblock content %}
