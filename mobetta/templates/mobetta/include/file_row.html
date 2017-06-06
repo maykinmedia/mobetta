@@ -1,0 +1,30 @@
+{% load i18n mobetta_tags %}
+
+{% with file.get_statistics as stats %}
+    <tr class="{% cycle 'row1' 'row2' %}" id="file_detail_{{ file.pk }}">
+        <td class="file-list__appname">
+            <a href="{% url 'mobetta:file_detail' pk=file.pk %}">{{ file.name }}</a>
+        </td>
+        <td class="file-list__progress">
+            {% progress stats.percent_translated %}
+        </td>
+        <td class="file-list__stat">{{ stats.total_messages }}</td>
+        <td class="file-list__stat">{{ stats.translated_messages }}</td>
+        <td class="file-list__stat">{{ stats.fuzzy_messages }}</td>
+        <td class="file-list__stat">{{ stats.obsolete_messages }}</td>
+        <td class="file-list__filename">
+            <span title="{{ file.filepath }}">{{ file.filepath }}</span>
+        </td>
+        <td>
+            {% blocktrans trimmed with time_ago=file.created|timesince %}
+                {{ time_ago }} ago
+            {% endblocktrans %}
+        </td>
+        <td>
+            <a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a>
+        </td>
+        <td>
+            <a href="{% url 'mobetta:download' file_pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a>
+        </td>
+    </tr>
+{% endwith %}

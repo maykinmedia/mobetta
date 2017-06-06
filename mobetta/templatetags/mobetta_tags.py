@@ -35,3 +35,20 @@ class ModalNode(template.Node):
 @register.tag
 def modal(parser, token):
     return ModalNode.handle_token(parser, token)
+
+
+@register.inclusion_tag('mobetta/include/progress.html')
+def progress(progress, upper_limit=100):
+    percent = int(progress / upper_limit * 100)
+    if percent < 40:
+        modifier = 'low'
+    elif 40 <= percent < 60:
+        modifier = 'medium'
+    elif 60 <= percent < 95:
+        modifier = 'high'
+    else:
+        modifier = 'complete'
+    return {
+        'percent': percent,
+        'modifier': modifier,
+    }

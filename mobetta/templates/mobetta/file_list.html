@@ -1,52 +1,54 @@
-{% extends "mobetta/base.html" %}
-{% load i18n %}
+{% extends "mobetta/base/file_list.html" %}
+{% load i18n mobetta_tags %}
 
-{% block pagetitle %}{{ block.super }} - {% trans "Translation files" %}{% endblock %}
 
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
-  &rsaquo; {{ language_name }}
-</div>
-{% endblock %}
-
-{% block content %}
-<h3>{% trans "Translation files for" %} {{ language_name }}</h3>
-<hr/>
-<br/>
-
-<table cellspacing="0">
+{% block table %}
+<table class="file-list">
     <thead>
         <tr>
-            <th>{% trans "App name" %}</th>
-            <th>{% trans "Percent translated" %}</th>
-            <th>{% trans "Total messages" %}</th>
-            <th>{% trans "Translated messages" %}</th>
-            <th>{% trans "Fuzzy messages" %}</th>
-            <th>{% trans "Obsolete messages" %}</th>
-            <th>{% trans "Filename" %}</th>
-            <th>{% trans "Created" %}</th>
-            <th>{% trans "Edit history" %}</th>
-            <th>{% trans "PO File" %}</th>
+            <th class="file-list__header">{% trans "App name" %}</th>
+            <th class="file-list__header">{% trans "Percent translated" %}</th>
+            <th class="file-list__header">{% trans "Total messages" %}</th>
+            <th class="file-list__header">{% trans "Translated messages" %}</th>
+            <th class="file-list__header">{% trans "Fuzzy messages" %}</th>
+            <th class="file-list__header">{% trans "Obsolete messages" %}</th>
+            <th class="file-list__header">{% trans "Filename" %}</th>
+            <th class="file-list__header">{% trans "Created" %}</th>
+            <th class="file-list__header">{% trans "Edit history" %}</th>
+            <th class="file-list__header">{% trans "PO File" %}</th>
         </tr>
     </thead>
     <tbody>
         {% for file in files %}
-          {% with file.get_statistics as stats %}
-            <tr class="{% cycle 'row1' 'row2' %}" id="file_detail_{{ file.pk }}">
-                <td><a href="{% url 'mobetta:file_detail' pk=file.pk %}">{{ file.name }}</a></td>
-                <td>{{ stats.percent_translated }}</td>
-                <td>{{ stats.total_messages }}</td>
-                <td>{{ stats.translated_messages }}</td>
-                <td>{{ stats.fuzzy_messages }}</td>
-                <td>{{ stats.obsolete_messages }}</td>
-                <td>{{ file.filepath }}</td>
-                <td>{{ file.created }}</td>
-                <td><a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a></td>
-                <td><a href="{% url 'mobetta:download' file_pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a></td>
-            </tr>
-          {% endwith %}
+            {% with file.get_statistics as stats %}
+                <tr class="{% cycle 'row1' 'row2' %}" id="file_detail_{{ file.pk }}">
+                    <td class="file-list__appname">
+                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}">{{ file.name }}</a>
+                    </td>
+                    <td class="file-list__progress">
+                        {% progress stats.percent_translated %}
+                    </td>
+                    <td class="file-list__stat">{{ stats.total_messages }}</td>
+                    <td class="file-list__stat">{{ stats.translated_messages }}</td>
+                    <td class="file-list__stat">{{ stats.fuzzy_messages }}</td>
+                    <td class="file-list__stat">{{ stats.obsolete_messages }}</td>
+                    <td class="file-list__filename">
+                        <span title="{{ file.filepath }}">{{ file.filepath }}</span>
+                    </td>
+                    <td>
+                        {% blocktrans trimmed with time_ago=file.created|timesince %}
+                            {{ time_ago }} ago
+                        {% endblocktrans %}
+                    </td>
+                    <td>
+                        <a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a>
+                    </td>
+                    <td>
+                        <a href="{% url 'mobetta:download' file_pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a>
+                    </td>
+                </tr>
+            {% endwith %}
         {% endfor %}
     </tbody>
 </table>
-{% endblock content %}
+{% endblock %}

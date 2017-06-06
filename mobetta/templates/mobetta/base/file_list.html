@@ -1,0 +1,19 @@
+{% extends "mobetta/base.html" %}
+{% load i18n mobetta_tags %}
+
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
+  &rsaquo; {{ language_name }}
+</div>
+{% endblock %}
+
+{% block content %}
+    {% block pagetitle %}
+        <h1>{% blocktrans %}{{ language_name }} translation files{% endblocktrans %}</h1>
+    {% endblock %}
+
+    {% block table %} {% endblock %}
+
+{% endblock content %}
