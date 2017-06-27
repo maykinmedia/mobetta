@@ -20,7 +20,7 @@ from mobetta.paginators import MovingRangePaginator
 from .base_views import (
     BaseFileDetailView, BaseFileDownloadView, BaseFileListView
 )
-from .icu.mixins import ICULanguageListMixin
+from .ext import ICULanguageListMixin
 
 
 class LanguageListView(ICULanguageListMixin, TemplateView):

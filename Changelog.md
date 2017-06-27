@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+* Fixed packaging/imports to use mobetta without extensions
+
 ## 0.2.3
 
 ### icu
