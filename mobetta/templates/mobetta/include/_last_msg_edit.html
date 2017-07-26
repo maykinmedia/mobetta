@@ -1,8 +1,10 @@
 {% load i18n %}
-<span>
+<span class="file-detail__last-edit">
 {% if logentry %}
-  {% trans "Last edited by" %} {{ logentry.user }} on {{ logentry.created }}
+    {% blocktrans with user=logentry.user created=logentry.created trimmed %}
+        Last edited by {{ user }} on {{ created }}
+    {% endblocktrans %}
 {% else %}
-  {% trans "No edits found" %}
+  {% trans "-" %}
 {% endif %}
 </span>

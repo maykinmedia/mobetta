@@ -226,3 +226,32 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; }
+
+.file-detail {
+  display: table;
+  table-layout: fixed; }
+  .file-detail, .file-detail * {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box; }
+  .file-detail__header {
+    padding: 8px; }
+    .file-detail__header--msgid {
+      width: 20%; }
+    .file-detail__header--context {
+      width: 5%; }
+    .file-detail__header--translation {
+      width: 20%; }
+    .file-detail__header--fuzzy {
+      width: 5%;
+      min-width: 40px; }
+    .file-detail__header--occurrences {
+      width: 10%; }
+    .file-detail__header--last-edit {
+      width: 5%; }
+    .file-detail__header--comments {
+      width: 10%; }
+  .file-detail__translation-input {
+    width: 100%; }
+
+#changelist table thead th {
+  padding: 8px; }

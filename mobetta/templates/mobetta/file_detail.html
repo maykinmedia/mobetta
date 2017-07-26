@@ -22,34 +22,34 @@
         {% csrf_token %}
 
         {% block formset %}
-        <table cellspacing="0">
+        <table class="file-detail">
             <thead>
                 <tr>
-                    <th>{% trans "Original" %}</th>
-                    <th>{% trans "Context" %}</th>
-                    <th>{% trans "Translation" %}</th>
-                    <th>{% trans "Fuzzy" %}</th>
-                    <th>{% trans "Occurrences" %}</th>
-                    <th>{% trans "Last edited" %}</th>
+                    <th class="file-detail__header file-detail__header--msgid">{% trans "Original" %}</th>
+                    <th class="file-detail__header file-detail__header--context">{% trans "Context" %}</th>
+                    <th class="file-detail__header file-detail__header--translation">{% trans "Translation" %}</th>
+                    <th class="file-detail__header file-detail__header--fuzzy">{% trans "Fuzzy" %}</th>
+                    <th class="file-detail__header file-detail__header--occurrences">{% trans "Occurrences" %}</th>
+                    <th class="file-detail__header file-detail__header--last-edit">{% trans "Last edited" %}</th>
                     {% if show_suggestions %}
-                      <th>{% trans "Suggestion" %}</th>
+                      <th class="file-detail__header file-detail__header--suggestions">{% trans "Suggestion" %}</th>
                     {% endif %}
-                    <th>{% trans "Comments" %}</th>
+                    <th class="file-detail__header file-detail__header--comments">{% trans "Comments" %}</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for form in formset %}
                     <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
-                        <td>
+                        <td class="file-detail__msgid">
                           {{ form.msgid }}
                           {{ form.md5hash }}
                           {{ form.msgid.value|highlight_tokens|safe|linebreaksbr }}
                         </td>
-                        <td>
-                          {{ form.context.value|escape }}
+                        <td class="file-detail__context">
+                          {{ form.context.value|default:_('-')|escape }}
                         </td>
-                        <td>
+                        <td class="file-detail__translation">
                           {{ form.translation }}
                           {{ form.translation.errors }}
                           {{ form.non_field_errors }}
@@ -59,7 +59,7 @@
                           {{ form.fuzzy.errors }}
                         </td>
                         <td>
-                          {{ form.occurrences.value|safe }}
+                          <code>{{ form.occurrences.value|safe }}</code>
                         </td>
                         <td>
                           {% last_edit file form.md5hash.value %}
@@ -71,14 +71,27 @@
                             <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
                           </td>
                         {% endif %}
-                        <td>
-                          <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
+                        <td class="trans-comments">
+                            {% comment_count file form.md5hash.value as comment_count %}
+                            <div class="trans-comments__count" id="id_{{ form.prefix }}-comment-count">
+                                {% blocktrans count comment_count=comment_count trimmed %}
+                                    1 comment
+                                {% plural %}
+                                    {{ comment_count}} comments
+                                {% endblocktrans %}
+                            </div>
+
                           <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
                             {% trans "Add comment" %}
                           </button>
+
+                          {% if comment_count or True %}
+                          &bull;
                           <button type="button" class="view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
                             {% trans "View comments" %}
                           </button>
+                          {% endif %}
+
                         </td>
                     </tr>
                     {{ form.old_translation }}
