@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5
+
+* Fixed .po file discovery when using country codes in locales, e.g. nl-NL, 
+  nl_NL
+
 ## 0.2.4
 
 * Fixed packaging/imports to use mobetta without extensions
