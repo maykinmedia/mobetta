@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.6
+
+* Fixed bug in url patterns causing download views to be broken.
+
 ## 0.2.5
 
 * Fixed .po file discovery when using country codes in locales, e.g. nl-NL, 
