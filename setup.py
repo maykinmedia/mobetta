@@ -13,7 +13,7 @@ os.chdir(basedir)
 
 setup(
     name='mobetta',
-    version='0.2.6',
+    version='0.2.7',
     license='BSD',
 
     # packaging
