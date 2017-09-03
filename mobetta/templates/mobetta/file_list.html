@@ -42,8 +42,8 @@
                 <td>{{ stats.obsolete_messages }}</td>
                 <td>{{ file.filepath }}</td>
                 <td>{{ file.created }}</td>
-                <td><a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a></td>
-                <td><a href="{% url 'mobetta:download' file_pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a></td>
+                <td><a href="{% url 'mobetta:edit_history' pk=file.pk %}">View</a></td>
+                <td><a href="{% url 'mobetta:download' pk=file.pk %}" download="{{ file.name }}_{{ file.language_code }}.po">{% trans 'Download' %}</a></td>
             </tr>
           {% endwith %}
         {% endfor %}
