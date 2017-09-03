@@ -76,7 +76,7 @@ class BaseEditLog(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss')
-    msgid = models.CharField(max_length=256, null=False)
+    msgid = models.TextField()
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
     """

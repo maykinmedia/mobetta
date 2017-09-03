@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.7
+
+* Changed CharField to TextField in log models, msgids can have arbitrary lengths
+
 ## 0.2.6
 
 * Fixed bug in url patterns causing download views to be broken.
