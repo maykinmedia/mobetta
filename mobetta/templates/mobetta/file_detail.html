@@ -5,7 +5,7 @@
 {% block form %}
 <div class="module" id="changelist">
 
-    <div id="toolbar">
+    <div id="toolbar" class="translation-search">
         <form id="translation-search" action="" method="get">
             <div id="changelist-search">
                 <label for="searchbar">
@@ -71,28 +71,27 @@
                             <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
                           </td>
                         {% endif %}
-                        <td class="trans-comments">
-                            {% comment_count file form.md5hash.value as comment_count %}
-                            <div class="trans-comments__count" id="id_{{ form.prefix }}-comment-count">
-                                {% blocktrans count comment_count=comment_count trimmed %}
-                                    1 comment
-                                {% plural %}
-                                    {{ comment_count}} comments
-                                {% endblocktrans %}
+
+                        <td>
+                            <div class="trans-comments">
+
+                                <button type="button" class="translation-action add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
+                                    {% trans "Add comment" %}
+                                </button>
+
+                                {% comment_count file form.md5hash.value as comment_count %}
+                                {% if comment_count %}
+                                    <button type="button" class="translation-action view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
+                                        {% blocktrans count comment_count=comment_count trimmed %}
+                                            View 1 comment
+                                        {% plural %}
+                                            View {{ comment_count}} comments
+                                        {% endblocktrans %}
+                                    </button>
+                                {% endif %}
                             </div>
-
-                          <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
-                            {% trans "Add comment" %}
-                          </button>
-
-                          {% if comment_count or True %}
-                          &bull;
-                          <button type="button" class="view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
-                            {% trans "View comments" %}
-                          </button>
-                          {% endif %}
-
                         </td>
+
                     </tr>
                     {{ form.old_translation }}
                     {{ form.old_fuzzy }}

@@ -1,6 +1,12 @@
+$file-detail-shadow: 0px 0px 2px 0 rgba($black, .1),
+                     2px 2px 3px 0 rgba($black, .1) !default;
+
+
 .file-detail {
   display: table;
   table-layout: fixed;
+  box-shadow: $file-detail-shadow;
+  border: solid 1px #eeeeee;
 
   &, & * {
     box-sizing: border-box;

@@ -229,7 +229,10 @@
 
 .file-detail {
   display: table;
-  table-layout: fixed; }
+  table-layout: fixed;
+  -webkit-box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
+  border: solid 1px #eeeeee; }
   .file-detail, .file-detail * {
     -webkit-box-sizing: border-box;
     box-sizing: border-box; }
@@ -252,6 +255,34 @@
       width: 10%; }
   .file-detail__translation-input {
     width: 100%; }
+
+.translation-action {
+  display: block;
+  background: #eeeeee;
+  padding: 0.3em 0.6em;
+  outline: none;
+  border: solid 1px #d5d5d5;
+  border-radius: 2px;
+  cursor: pointer; }
+  .translation-action:hover, .translation-action:active, .translation-action:focus {
+    -webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.1), 2px 2px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.1), 2px 2px 3px rgba(0, 0, 0, 0.2); }
+
+.trans-comments {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column; }
+  .trans-comments > * + * {
+    margin-top: 0.5em; }
+
+.translation-search {
+  -webkit-box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
+  box-shadow: 0px 0px 2px 0 rgba(0, 0, 0, 0.1), 2px 2px 3px 0 rgba(0, 0, 0, 0.1);
+  border: solid 1px #eeeeee; }
 
 #changelist table thead th {
   padding: 8px; }

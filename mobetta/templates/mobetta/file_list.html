@@ -33,7 +33,7 @@
                     <td class="file-list__stat">{{ stats.fuzzy_messages }}</td>
                     <td class="file-list__stat">{{ stats.obsolete_messages }}</td>
                     <td class="file-list__filename">
-                        <span title="{{ file.filepath }}">{{ file.filepath }}</span>
+                        <code title="{{ file.filepath }}">{{ file.filepath }}</code>
                     </td>
                     <td>
                         {% blocktrans trimmed with time_ago=file.created|timesince %}
