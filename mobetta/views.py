@@ -225,11 +225,8 @@ class EditHistoryView(ListView):
     paginate_by = 20
 
     @method_decorator(login_required)
-    def dispatch(self, request, file_pk, *args, **kwargs):
-        self.translation_file = get_object_or_404(
-            TranslationFile,
-            pk=file_pk
-        )
+    def dispatch(self, request, pk, *args, **kwargs):
+        self.translation_file = get_object_or_404(TranslationFile, pk=pk)
 
         if not can_translate_language(request.user, self.translation_file.language_code):
             raise PermissionDenied

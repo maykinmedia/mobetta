@@ -31,7 +31,7 @@
                     {% endblocktrans %}
                 </td>
                 <td>
-                    <a href="{% url 'mobetta:edit_history' file_pk=file.pk %}">View</a>
+                    <a href="{% url 'mobetta:edit_history' pk=file.pk %}">{% trans "View" %}</a>
                 </td>
                 <td>
                     <a href="{% url 'mobetta:icu_download' pk=file.pk %}" download="{{ file.name|lower }}_{{ file.language_code }}.json">{% trans 'Download' %}</a>

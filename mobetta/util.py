@@ -234,9 +234,14 @@ def find_pofiles(lang, project_apps=True, third_party_apps=False):
     # ensure all locale combinations are detected, e.g. nl_nl, nl_NL, nl-nl and
     # nl-NL
     langs = [lang]
+    lang_code, country_code = None, None
     for splitter in ['-', '_']:
         if splitter in lang:
             lang_code, country_code = lang.lower().split(splitter)
+            break
+
+    if lang_code and country_code:
+        for splitter in ['-', '_']:
             langs += [
                 "%s%s%s" % (lang_code, splitter, country_code),
                 "%s%s%s" % (lang_code, splitter, country_code.upper())
