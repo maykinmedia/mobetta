@@ -1,0 +1,18 @@
+$btn-padding: 3px 12px !default;
+$btn-color: #999999 !default;
+$btn-border-radius: 15px !default;
+
+.button,
+.btn {
+  display: inline-block;
+  padding: $btn-padding;
+  background-color: $btn-color;
+  border-radius: $btn-border-radius;
+  color: $white;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+
+  &--right {
+    float: right;
+  }
+}

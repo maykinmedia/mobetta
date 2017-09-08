@@ -14,7 +14,9 @@ ProjectUserModel = get_user_model()
 class TranslationForm(forms.Form):
     msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
     md5hash = forms.CharField(max_length=32, widget=forms.HiddenInput())
-    translation = forms.CharField(widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False)
+    translation = forms.CharField(widget=forms.Textarea(
+        attrs={'rows': '3', 'class': 'file-detail__translation-input'}
+    ), required=False)
     old_translation = forms.CharField(widget=forms.HiddenInput(), required=False)
     fuzzy = forms.BooleanField(required=False)
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())

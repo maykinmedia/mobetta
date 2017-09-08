@@ -112,7 +112,7 @@ function FileDetailView() {
      * Sets up the 'add comment' modal
      */
     this.setUpAddCommentModal = function() {
-        var closeButton = this.$add_comment_modal.find('.close');
+        var closeButton = this.$add_comment_modal.find('.btn-close');
         closeButton.on('click', $.proxy(function() {
             this.$add_comment_modal.hide();
         }, this));
@@ -125,7 +125,7 @@ function FileDetailView() {
      * Sets up the 'view comments' modal
      */
     this.setUpViewCommentsModal = function() {
-        var closeButton = this.$view_comments_modal.find('.close');
+        var closeButton = this.$view_comments_modal.find('.btn-close');
         closeButton.on('click', $.proxy(function() {
             this.$view_comments_modal.hide();
         }, this));

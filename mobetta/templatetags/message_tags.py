@@ -32,10 +32,8 @@ def last_edit(transfile, msghash):
 
 @register.simple_tag
 def comment_count(transfile, msghash):
-    return MessageComment.objects.filter(
-        translation_file=transfile,
-        msghash=msghash
-    ).count()
+    # TODO: this can probably be annotated instead of doing a query for every translation
+    return MessageComment.objects.filter(translation_file=transfile, msghash=msghash).count()
 
 
 @register.filter

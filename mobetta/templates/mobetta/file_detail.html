@@ -1,183 +1,111 @@
-{% extends "mobetta/base.html" %}
-{% load static %}
-{% load i18n %}
-{% load message_tags %}
+{% extends "mobetta/base/file_detail.html" %}
+{% load static i18n message_tags mobetta_tags %}
 
-{% block extrastyle %}
-    <link rel="stylesheet" href="{% static 'admin/css/changelists.css' %}" type="text/css"/>
-    <link rel="stylesheet" href="{% static 'css/file_detail.css' %}" type="text/css"/>
-    {{ block.super }}
-{% endblock %}
 
-{% block extrahead %}
-    {{ block.super }}
-    <script type="text/javascript" src="{% static 'js/file_detail.js' %}"></script>
-{% endblock extrahead %}
+{% block form %}
+<div class="module" id="changelist">
 
-{% block pagetitle %}
-    {{ block.super }} - {% trans 'Translations' %}
-{% endblock %}
+    <div id="toolbar" class="translation-search">
+        <form id="translation-search" action="" method="get">
+            <div id="changelist-search">
+                <label for="searchbar">
+                    <img src="{% static 'admin/img/search.svg' %}" alt="{% trans 'Search' %}" />
+                </label>
+                <input type="text" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
+                <input type="submit" value="{% trans 'Go' %}" />
+            </div>
+        </form>
+    </div>
 
-{% block breadcrumbs %}
-<div class="breadcrumbs">
-  <a href="{% url 'mobetta:language_list' %}">{% trans "Home" %}</a>
-  &rsaquo; <a href="{% url 'mobetta:file_list' lang_code=file.language_code %}">{{ file.get_language_name }}</a>
-  &rsaquo; {{ file.filepath }}
-</div>
-{% endblock %}
+    <form id="translation-edit" action="" method="post">
+        {{ formset.management_form }}
+        {% csrf_token %}
 
-{% block content %}
-    <div id="content-main">
-
-        <div class="module" id="changelist">
-
-            <h1>{% trans 'Translations' %}</h1>
-
-            <div id="toolbar">
-                <form id="translation-search" action="" method="get">
-                    <div id="changelist-search">
-                        <label for="searchbar"><img src="{% static 'admin/img/search.svg' %}" alt="{% trans 'Search' %}" /></label>
-                        <input type="text" size="40" name="search_tags" value="{{ search_tags }}" id="searchbar" tabindex="0" />
-                        <input type="submit" value="{% trans 'Go' %}" />
-                    </div>
-                </form>
-
-                <ul class="changelist-filters">
-                    {% block filters %}
-                    <li>
-                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}{% if filter_query_params%}?{{ filter_query_params }}{% endif %}">All</a>
-                    </li>
-                    {% if fuzzy_filter %}
-                    <li>
-                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=fuzzy{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Fuzzy</a>
-                    </li>
+        {% block formset %}
+        <table class="file-detail">
+            <thead>
+                <tr>
+                    <th class="file-detail__header file-detail__header--msgid">{% trans "Original" %}</th>
+                    <th class="file-detail__header file-detail__header--context">{% trans "Context" %}</th>
+                    <th class="file-detail__header file-detail__header--translation">{% trans "Translation" %}</th>
+                    <th class="file-detail__header file-detail__header--fuzzy">{% trans "Fuzzy" %}</th>
+                    <th class="file-detail__header file-detail__header--occurrences">{% trans "Occurrences" %}</th>
+                    <th class="file-detail__header file-detail__header--last-edit">{% trans "Last edited" %}</th>
+                    {% if show_suggestions %}
+                      <th class="file-detail__header file-detail__header--suggestions">{% trans "Suggestion" %}</th>
                     {% endif %}
-                    <li>
-                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=translated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Translated</a>
-                    </li>
-                    <li>
-                        <a href="{% url 'mobetta:file_detail' pk=file.pk %}?type=untranslated{% if filter_query_params%}&{{ filter_query_params }}{% endif %}">Untranslated</a>
-                    </li>
-                    {% endblock filters %}
-                </ul>
-            </div>
+                    <th class="file-detail__header file-detail__header--comments">{% trans "Comments" %}</th>
+                </tr>
+            </thead>
 
-            <form id="translation-edit" action="" method="post">
-                {{ formset.management_form }}
-                {% csrf_token %}
+            <tbody>
+                {% for form in formset %}
+                    <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
+                        <td class="file-detail__msgid">
+                          {{ form.msgid }}
+                          {{ form.md5hash }}
+                          {{ form.msgid.value|highlight_tokens|safe|linebreaksbr }}
+                        </td>
+                        <td class="file-detail__context">
+                          {{ form.context.value|default:_('-')|escape }}
+                        </td>
+                        <td class="file-detail__translation">
+                          {{ form.translation }}
+                          {{ form.translation.errors }}
+                          {{ form.non_field_errors }}
+                        </td>
+                        <td>
+                          {{ form.fuzzy }}
+                          {{ form.fuzzy.errors }}
+                        </td>
+                        <td>
+                          <code>{{ form.occurrences.value|safe }}</code>
+                        </td>
+                        <td>
+                          {% last_edit file form.md5hash.value %}
+                        </td>
+                        {% if show_suggestions %}
+                          <td>
+                            <button type="button" class="show-suggestion" data-form-prefix="{{ form.prefix }}" data-url="{% url 'mobetta:api:translation_suggestion' %}?msgid={{ form.msgid.value|iriencode }}&language_code={{ file.language_code }}">Show suggestion</button>
+                            <span class="auto-suggestion" id="id_{{ form.prefix }}-auto-suggestion"></span>
+                            <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
+                          </td>
+                        {% endif %}
 
-                {% block formset %}
-                <table cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>{% trans "Original" %}</th>
-                            <th>{% trans "Context" %}</th>
-                            <th>{% trans "Translation" %}</th>
-                            <th>{% trans "Fuzzy" %}</th>
-                            <th>{% trans "Occurrences" %}</th>
-                            <th>{% trans "Last edited" %}</th>
-                            {% if show_suggestions %}
-                              <th>{% trans "Suggestion" %}</th>
-                            {% endif %}
-                            <th>{% trans "Comments" %}</th>
-                        </tr>
-                    </thead>
+                        <td>
+                            <div class="trans-comments">
 
-                    <tbody>
-                        {% for form in formset %}
-                            <tr class="transrow {% cycle 'row1' 'row2' %}{% if translation.obsolete %} warning{% endif %}">
-                                <td>
-                                  {{ form.msgid }}
-                                  {{ form.md5hash }}
-                                  {{ form.msgid.value|highlight_tokens|safe|linebreaksbr }}
-                                </td>
-                                <td>
-                                  {{ form.context.value|escape }}
-                                </td>
-                                <td>
-                                  {{ form.translation }}
-                                  {{ form.translation.errors }}
-                                  {{ form.non_field_errors }}
-                                </td>
-                                <td>
-                                  {{ form.fuzzy }}
-                                  {{ form.fuzzy.errors }}
-                                </td>
-                                <td>
-                                  {{ form.occurrences.value|safe }}
-                                </td>
-                                <td>
-                                  {% last_edit file form.md5hash.value %}
-                                </td>
-                                {% if show_suggestions %}
-                                  <td>
-                                    <button type="button" class="show-suggestion" data-form-prefix="{{ form.prefix }}" data-url="{% url 'mobetta:api:translation_suggestion' %}?msgid={{ form.msgid.value|iriencode }}&language_code={{ file.language_code }}">Show suggestion</button>
-                                    <span class="auto-suggestion" id="id_{{ form.prefix }}-auto-suggestion"></span>
-                                    <span class="auto-suggestion-error" id="id_{{ form.prefix }}-auto-suggestion-error"></span>
-                                  </td>
-                                {% endif %}
-                                <td>
-                                  <span class="comment-count" id="id_{{ form.prefix }}-comment-count">{% comment_count file form.md5hash.value %}</span> comments
-                                  <button type="button" class="add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
+                                <button type="button" class="translation-action add-comment" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-filepk="{{ file.pk }}" data-form-prefix="{{ form.prefix }}">
                                     {% trans "Add comment" %}
-                                  </button>
-                                  <button type="button" class="view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
-                                    {% trans "View comments" %}
-                                  </button>
-                                </td>
-                            </tr>
-                            {{ form.old_translation }}
-                            {{ form.old_fuzzy }}
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% endblock formset %}
+                                </button>
 
-                <div class="submit-row">
-                    <input type="submit" />
-                </div>
-            </form>
+                                {% comment_count file form.md5hash.value as comment_count %}
+                                {% if comment_count %}
+                                    <button type="button" class="translation-action view-comments" data-msghash="{{ form.md5hash.value }}" data-msgid="{{ form.msgid.value }}" data-url="{% url 'mobetta:api:messagecomment-list' %}?translation_file={{ file.pk }}&msghash={{ form.md5hash.value|iriencode }}">
+                                        {% blocktrans count comment_count=comment_count trimmed %}
+                                            View 1 comment
+                                        {% plural %}
+                                            View {{ comment_count}} comments
+                                        {% endblocktrans %}
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
 
-            {% include 'mobetta/pagination.html' %}
+                    </tr>
+                    {{ form.old_translation }}
+                    {{ form.old_fuzzy }}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endblock formset %}
 
+        <div class="submit-row">
+            <input type="submit" />
         </div>
-    </div>
+    </form>
 
-    <div class="modal" id="modal-add-comment">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close">x</span>
-                <h3>Add a comment</h3>
-            </div>
-            <div class="modal-body">
-                <form class="comment-form" data-submiturl="{% url 'mobetta:api:messagecomment-list' %}" data-form-prefix="">
-                    {% csrf_token %}
-                    {{ comment_form.translation_file }}
-                    {{ comment_form.msghash }}
-                    {{ comment_form.body }}
-                    <p><span class="errorlist" ></span></p>
-                    <button>Submit</button>
-                </form>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-    </div>
+    {% include 'mobetta/pagination.html' %}
 
-    <div class="modal" id="modal-view-comments">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close">x</span>
-                <h3>&quot;<span class="comment-msgid"></span>&quot;</h3>
-            </div>
-            <div class="modal-body">
-                <p>Comments</p>
-                <ul class="comments-list">
-                </ul>
-            </div>
-            <div class="modal-footer">
-            </div>
-        </div>
-    </div>
-{% endblock content %}
-
+</div>
+{% endblock form %}

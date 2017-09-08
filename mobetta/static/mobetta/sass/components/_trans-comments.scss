@@ -1,0 +1,37 @@
+$translation-action-btn-background: #eeeeee !default;
+
+.translation-action {
+  display: block;
+  background: $translation-action-btn-background;
+  padding: 0.3em 0.6em;
+  outline: none;
+  border: solid 1px darken($translation-action-btn-background, 10%);
+  border-radius: 2px;
+  cursor: pointer;
+
+  &:hover,
+  &:active,
+  &:focus {
+    // background: lighten($translation-action-btn-background, 5%);
+    // border-color: $translation-action-btn-background;
+    box-shadow: 0px 0px 2px rgba($black, .10),
+                2px 2px 3px rgba($black, .20);
+  }
+}
+
+.trans-comments {
+  display: flex;
+  flex-direction: column;
+
+  > * + * {
+    margin-top: 0.5em;
+  }
+}
+
+$translation-search-shadow: 0px 0px 2px 0 rgba($black, .1),
+                            2px 2px 3px 0 rgba($black, .1) !default;
+
+.translation-search {
+  box-shadow: $translation-search-shadow;
+  border: solid 1px #eeeeee;
+}

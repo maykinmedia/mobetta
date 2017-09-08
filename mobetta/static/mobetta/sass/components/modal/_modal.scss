@@ -1,0 +1,15 @@
+// the modal background layer
+.modal {
+  display: none;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+
+  padding-top: 100px;
+  overflow: auto;
+  background-color: $black; /* Fallback colour */
+  background-color: rgba($black, 0.4); /* black w/ opacity */
+}

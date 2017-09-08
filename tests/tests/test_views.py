@@ -538,9 +538,9 @@ class FileListViewTests(POFileTestCase, WebTest):
                       'translated', 'fuzzy', 'obsolete', 'filename', 'created']
 
         stats_cells = file_row.find_all('td', recursive=False)
-        stats_results = dict(zip(col_titles, [cell.text for cell in list(stats_cells)]))
+        stats_results = dict(zip(col_titles, [cell.text.strip() for cell in list(stats_cells)]))
 
-        self.assertEqual(Decimal(stats_results['percent_translated']), Decimal(25.0))
+        self.assertEqual(stats_results['percent_translated'], '25%')
         self.assertEqual(int(stats_results['total_messages']), 4)
         self.assertEqual(int(stats_results['translated']), 1)
         self.assertEqual(int(stats_results['fuzzy']), 0)

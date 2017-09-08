@@ -1,0 +1,51 @@
+$file-detail-shadow: 0px 0px 2px 0 rgba($black, .1),
+                     2px 2px 3px 0 rgba($black, .1) !default;
+
+
+.file-detail {
+  display: table;
+  table-layout: fixed;
+  box-shadow: $file-detail-shadow;
+  border: solid 1px #eeeeee;
+
+  &, & * {
+    box-sizing: border-box;
+  }
+
+  &__header {
+    padding: 8px;
+
+    &--msgid {
+      width: 20%;
+    }
+
+    &--context {
+      width: 5%;
+    }
+
+    &--translation {
+      width: 20%;
+    }
+
+    &--fuzzy {
+      width: 5%;
+      min-width: 40px;
+    }
+
+    &--occurrences {
+      width: 10%;
+    }
+
+    &--last-edit {
+      width: 5%;
+    }
+
+    &--comments {
+      width: 10%;
+    }
+  }
+
+  &__translation-input {
+    width: 100%;
+  }
+}

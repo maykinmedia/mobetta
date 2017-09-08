@@ -1,0 +1,13 @@
+.btn-close {
+  color: $btn-close-color;
+  cursor: pointer;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+
+  &:hover,
+  &:focus {
+    color: $btn-close-color-hover;
+    text-decoration: none;
+  }
+}

@@ -1,0 +1,12 @@
+.modal__body {
+  padding: $modal-padding;
+
+  li {
+    font-size: normal;
+  }
+
+  textarea {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+}

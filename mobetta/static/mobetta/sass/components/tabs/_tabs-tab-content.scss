@@ -1,0 +1,17 @@
+.tabs__tab-content {
+  box-sizing: border-box;
+  display: none;
+  position: absolute;
+  top: $tab-header-height + $tab-header-offset;
+  left: 0;
+  z-index: 2;
+  width: 100%;
+  overflow: hidden;
+
+  background-color: $tab-content-background-color;
+  padding: $tab-content-padding;
+  border: solid 1px darken($tab-content-background-color, 5);
+  border-radius: $tab-content-border-radius;
+
+  box-shadow: $tab-shadow;
+}

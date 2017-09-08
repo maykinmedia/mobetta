@@ -1,0 +1,20 @@
+.language-list {
+  @extend %table;
+
+  &__header {
+    @extend %table__header;
+
+    font-size: 1em;
+    text-decoration: underline;
+  }
+
+  &__lang-name {
+    font-weight: 600;
+    padding: 1em;
+    text-transform: uppercase;
+  }
+
+  &__no-files {
+    padding: 1em;
+  }
+}

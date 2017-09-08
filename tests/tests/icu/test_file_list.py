@@ -35,7 +35,7 @@ def test_file_stats(django_app, real_icu_file):
     col_titles = ['name', 'total_messages', 'filename',
                   'created', 'edit_history', 'download']
     stats_cells = file_row.find_all('td', recursive=False)
-    stats_results = dict(zip(col_titles, [cell.text for cell in list(stats_cells)]))
+    stats_results = dict(zip(col_titles, [cell.text.strip() for cell in list(stats_cells)]))
 
     assert stats_results['name'] == real_icu_file.name
     assert stats_results['total_messages'] == '2'
