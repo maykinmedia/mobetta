@@ -48,6 +48,24 @@ class CompilePoFilesViewTests(POFileTestCase, WebTest):
         self.app.get(self.url, user=self.admin_user, status=302)
 
 
+class FindPoFilesViewTests(POFileTestCase, WebTest):
+    def setUp(self):
+        super(FindPoFilesViewTests, self).setUp()
+
+        self.admin_user = AdminFactory.create()
+        self.user = UserFactory.create()
+        self.url = reverse('mobetta:find_po_files')
+
+    def test_login_required(self):
+        self.app.get(self.url, status=302)
+
+    def test_no_permission(self):
+        self.app.get(self.url, user=self.user, status=302)
+
+    def test_compile_files(self):
+        self.app.get(self.url, user=self.admin_user, status=302)
+
+
 class FileDetailViewTests(POFileTestCase, WebTest):
 
     def setUp(self):

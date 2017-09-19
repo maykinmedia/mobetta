@@ -3,12 +3,13 @@ from django.conf.urls import include, url
 
 from .views import (
     AddTranslatorView, CompilePoFilesView, EditHistoryView, FileDetailView,
-    FileDownloadView, FileListView, LanguageListView
+    FileDownloadView, FileListView, FindPoFilesView, LanguageListView
 )
 
 app_name = 'mobetta'
 urlpatterns = [
     url(r'^$', LanguageListView.as_view(), name='language_list'),
+    url(r'^find/$', FindPoFilesView.as_view(), name='find_po_files'),
     url(r'^compile/$', CompilePoFilesView.as_view(), name='compile_po_files'),
     url(r'^add_translator/$', AddTranslatorView.as_view(), name='add_translator'),
     url(r'^edit_log/(?P<pk>\d+)/$', EditHistoryView.as_view(), name='edit_history'),

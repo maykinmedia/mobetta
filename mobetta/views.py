@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
+from django.core.management import call_command
 from django.core.urlresolvers import reverse_lazy
 from django.forms import formset_factory
 from django.shortcuts import get_object_or_404
@@ -75,6 +76,19 @@ class CompilePoFilesView(RedirectView):
 
         messages.success(request, _('Compiled the translations. Checkout the new files.'))
         return super(CompilePoFilesView, self).get(request, *args, **kwargs)
+
+
+class FindPoFilesView(RedirectView):
+    url = reverse_lazy('mobetta:language_list')
+    permanent = False
+
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super(FindPoFilesView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        call_command('locate_translation_files')
+        return super(FindPoFilesView, self).get(request, *args, **kwargs)
 
 
 def _entry_matches(regex, entry):
