@@ -526,6 +526,38 @@ class FileDetailViewTests(POFileTestCase, WebTest):
         self.assertEqual(only_file_edit.msghash, msghash_to_edit)
         self.assertEqual(only_file_edit.new_value, new_translation)
 
+    def test_leading_trailing_whitespace(self):
+        """
+        Assert that leading/trailing whitespace doesn't reject the changes.
+
+        Regression caused by leading whitespace in the extracted message,
+        which is stripped off in the form cleaning [built in in Django, enabled
+        by default].
+        """
+        self.create_poentry(u'plain string', u' plain string ')
+
+        response = self.app.get(self.url, user=self.admin_user)
+        self.assertEqual(response.status_code, 200)
+
+        translation_edit_form = response.forms['translation-edit']
+
+        # 5th entry is ours
+        self.assertEqual(
+            translation_edit_form['form-5-translation'].value,
+            u' plain string '
+        )
+
+        translation_edit_form['form-5-translation'] = u'new translation'
+        response = translation_edit_form.submit().follow()
+        self.assertEqual(response.status_code, 200)
+
+        # Check the file
+        pofile = self.transfile.get_polib_object()
+        self.assertEqual(
+            pofile.find('plain string').msgstr,
+            u'new translation'
+        )
+
 
 class FileListViewTests(POFileTestCase, WebTest):
 
