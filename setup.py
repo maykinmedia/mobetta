@@ -24,7 +24,7 @@ DRF_DEP = 'djangorestframework<3.7' if limit_drf else 'djangorestframework'
 
 setup(
     name='mobetta',
-    version='0.2.8',
+    version='0.2.9',
     license='BSD',
 
     # packaging
