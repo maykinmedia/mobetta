@@ -8,14 +8,21 @@ from django.contrib.auth.models import Group
 from mobetta.models import MessageComment, TranslationFile
 from mobetta.util import get_token_regexes
 
+from .compat import HAS_STRIP_KWARG
+
 ProjectUserModel = get_user_model()
+
+_strip_kwargs = {'strip': False} if HAS_STRIP_KWARG else {}
 
 
 class TranslationForm(forms.Form):
-    msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput())
-    md5hash = forms.CharField(max_length=32, widget=forms.HiddenInput())
-    translation = forms.CharField(widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}), required=False)
-    old_translation = forms.CharField(widget=forms.HiddenInput(), required=False)
+    msgid = forms.CharField(max_length=1024, widget=forms.HiddenInput, **_strip_kwargs)
+    md5hash = forms.CharField(max_length=32, widget=forms.HiddenInput)
+    translation = forms.CharField(
+        widget=forms.Textarea(attrs={'cols': '80', 'rows': '3'}),
+        required=False, **_strip_kwargs
+    )
+    old_translation = forms.CharField(widget=forms.HiddenInput, required=False, **_strip_kwargs)
     fuzzy = forms.BooleanField(required=False)
     old_fuzzy = forms.BooleanField(required=False, widget=forms.HiddenInput())
     context = forms.CharField(max_length=1024, required=False)

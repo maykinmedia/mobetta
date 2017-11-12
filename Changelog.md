@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.9
+
+* Fixed form CharField strip argument, fixing an incorrect validation error
+  saying the translation was edited by someone else when it wasn't (issue #10)
+
 ## 0.2.7
 
 * Changed CharField to TextField in log models, msgids can have arbitrary lengths

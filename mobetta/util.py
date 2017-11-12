@@ -32,6 +32,7 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six, timezone
 
+from . import __version__
 from .conf.settings import MOBETTA_PO_FILENAMES
 
 
@@ -63,13 +64,6 @@ def get_token_regexes():
         r'(?:%\([^\)]*\)[acdefgiorsux])',  # Python2 format tokens
         r'(?:\{{2}[^\}\n]*\}{2})',  # Django template variables
     ]
-
-
-def get_version():
-    """
-    TODO: Probably use a config file for this.
-    """
-    return u"0.0.2"
 
 
 def message_is_fuzzy(message):
@@ -116,7 +110,7 @@ def update_metadata(pofile, first_name=None, last_name=None, email=None):
         email or u'anonymous@user.tld'
     ))
 
-    pofile.metadata['X-Translated-Using'] = u"Mobetta %s" % get_version()
+    pofile.metadata['X-Translated-Using'] = u"Mobetta %s" % __version__
     pofile.metadata['PO-Revision-Date'] = timestamp_for_metadata()
 
 
