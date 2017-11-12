@@ -110,5 +110,5 @@ class POFileTests(POFileTestCase):
 
         self.assertEqual(pofile.metadata['Last-Translator'], u'Ŧest User <test@user.nl>')
 
-        version_code = u'Mobetta {}'.format(util.get_version())
+        version_code = u'Mobetta {}'.format(util.__version__)
         self.assertEqual(pofile.metadata['X-Translated-Using'], version_code)
