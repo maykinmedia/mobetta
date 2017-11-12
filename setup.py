@@ -11,6 +11,17 @@ with open(os.path.join(basedir, 'docs', 'index.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(basedir)
 
+try:
+    from django import VERSION as DJANGO_VERSION
+except ImportError:  # nothing we can do...
+    limit_drf = False
+else:
+    limit_drf = DJANGO_VERSION < (1, 9)
+
+
+DRF_DEP = 'djangorestframework<3.7' if limit_drf else 'djangorestframework'
+
+
 setup(
     name='mobetta',
     version='0.2.8',
@@ -20,7 +31,7 @@ setup(
     install_requires=[
         'Django>=1.8',
         'polib',
-        'djangorestframework'
+        DRF_DEP,
     ],
     include_package_data=True,
     packages=find_packages(exclude=["tests"]),
