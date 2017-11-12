@@ -10,7 +10,7 @@ Mobetta
 .. rubric:: Manage translations in Django projects
 
 .. image:: https://travis-ci.org/maykinmedia/mobetta.svg?branch=master
-    :target: http://travis-ci.org/maykinmedia/mobetta
+    :target: https://travis-ci.org/maykinmedia/mobetta
 
 .. image:: https://codecov.io/gh/maykinmedia/mobetta/branch/develop/graph/badge.svg
     :target: https://codecov.io/gh/maykinmedia/mobetta
