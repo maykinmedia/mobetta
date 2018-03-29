@@ -2,7 +2,9 @@ import os
 
 from setuptools import find_packages, setup
 
-basedir = os.path.normpath(os.path.abspath(os.path.dirname(__file__)))
+basedir = os.path.normpath(
+    os.path.abspath(os.path.dirname(__file__))
+)
 
 
 with open(os.path.join(basedir, 'docs', 'index.rst')) as readme:
@@ -10,16 +12,6 @@ with open(os.path.join(basedir, 'docs', 'index.rst')) as readme:
 
 # allow setup.py to be run from any path
 os.chdir(basedir)
-
-try:
-    from django import VERSION as DJANGO_VERSION
-except ImportError:  # nothing we can do...
-    limit_drf = False
-else:
-    limit_drf = DJANGO_VERSION < (1, 9)
-
-
-DRF_DEP = 'djangorestframework<3.7' if limit_drf else 'djangorestframework'
 
 
 setup(
@@ -29,9 +21,9 @@ setup(
 
     # packaging
     install_requires=[
-        'Django>=1.8',
+        'Django>=1.11',
         'polib',
-        DRF_DEP,
+        'djangorestframework>=3.7.0',
     ],
     include_package_data=True,
     packages=find_packages(exclude=["tests"]),
@@ -70,10 +62,8 @@ setup(
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',
         'Framework :: Django',
-        'Framework :: Django :: 1.8',
-        'Framework :: Django :: 1.9',
-        'Framework :: Django :: 1.10',
         'Framework :: Django :: 1.11',
+        'Framework :: Django :: 2.0',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: BSD License',
         'Operating System :: OS Independent',
@@ -81,9 +71,9 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],

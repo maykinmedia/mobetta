@@ -20,8 +20,8 @@ class Migration(migrations.Migration):
                 ('created', models.DateTimeField(auto_now_add=True)),
                 ('msgid', models.CharField(max_length=127)),
                 ('body', models.CharField(max_length=1024)),
-                ('translation_file', models.ForeignKey(related_name='comments', to='mobetta.TranslationFile')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('translation_file', models.ForeignKey(related_name='comments', to='mobetta.TranslationFile', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['created'],

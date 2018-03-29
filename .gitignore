@@ -18,6 +18,7 @@ tests/locale/nl/LC_MESSAGES/django\.mo
 \.cache/v/cache/lastfailed
 coverage\.xml
 junit\.xml
+.pytest_cache
 
 # docs
 docs/_build

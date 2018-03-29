@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext as _
 
 from django_webtest import WebTest

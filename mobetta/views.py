@@ -5,9 +5,9 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.core.exceptions import PermissionDenied
 from django.core.management import call_command
-from django.core.urlresolvers import reverse_lazy
 from django.forms import formset_factory
 from django.shortcuts import get_object_or_404
+from django.urls import reverse_lazy
 from django.utils.decorators import method_decorator
 from django.utils.translation import ugettext as _
 from django.views.generic import FormView, ListView, RedirectView, TemplateView

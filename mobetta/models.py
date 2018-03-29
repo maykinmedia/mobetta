@@ -75,7 +75,7 @@ class TranslationFile(models.Model):
 class BaseEditLog(models.Model):
 
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss')
+    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss', on_delete=models.CASCADE)
     msgid = models.TextField()
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
@@ -102,12 +102,15 @@ class BaseEditLog(models.Model):
 
 
 class EditLog(BaseEditLog):
-    file_edited = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='edit_logs')
+    file_edited = models.ForeignKey(
+        TranslationFile, blank=False, null=False,
+        related_name='edit_logs', on_delete=models.CASCADE
+    )
 
 
 class BaseMessageComment(models.Model):
     created = models.DateTimeField(auto_now_add=True)
-    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss')
+    user = models.ForeignKey(UserModel, related_name='%(app_label)s_%(class)ss', on_delete=models.CASCADE)
 
     msghash = models.CharField(max_length=32, null=False, blank=False)
     """
@@ -130,4 +133,7 @@ class BaseMessageComment(models.Model):
 
 
 class MessageComment(BaseMessageComment):
-    translation_file = models.ForeignKey(TranslationFile, blank=False, null=False, related_name='comments')
+    translation_file = models.ForeignKey(
+        TranslationFile, blank=False, null=False,
+        related_name='comments', on_delete=models.CASCADE
+    )

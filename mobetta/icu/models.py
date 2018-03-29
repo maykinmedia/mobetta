@@ -94,12 +94,13 @@ class ICUTranslationFile(models.Model):
 
 class EditLog(BaseEditLog):
     file_edited = models.ForeignKey(
-        ICUTranslationFile, blank=False, null=False, related_name='edit_logs'
+        ICUTranslationFile, blank=False, null=False,
+        related_name='edit_logs', on_delete=models.CASCADE
     )
 
 
 class MessageComment(BaseMessageComment):
     translation_file = models.ForeignKey(
-        ICUTranslationFile, blank=False,
-        null=False, related_name='comments'
+        ICUTranslationFile, blank=False, null=False,
+        related_name='comments', on_delete=models.CASCADE
     )
