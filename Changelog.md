@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+* Dropped support for Django < 1.11
+* Added support for Django 2.0.x
+
 ## 0.2.9
 
 * Fixed form CharField strip argument, fixing an incorrect validation error
@@ -15,7 +20,7 @@
 
 ## 0.2.5
 
-* Fixed .po file discovery when using country codes in locales, e.g. nl-NL, 
+* Fixed .po file discovery when using country codes in locales, e.g. nl-NL,
   nl_NL
 
 ## 0.2.4
