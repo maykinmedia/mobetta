@@ -8,7 +8,7 @@ router = routers.DefaultRouter()
 router.register(r'files', views.TranslationFileViewSet)
 router.register(r'comments', views.MessageCommentViewSet)
 
-
+app_name = 'mobetta'
 urlpatterns = [
     url(r'^', include(router.urls)),
     url(r'^auth/', include('rest_framework.urls', namespace='rest_framework')),

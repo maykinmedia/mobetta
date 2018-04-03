@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.six.moves.urllib.parse import urlparse
 from django.utils.translation import ugettext as _
 

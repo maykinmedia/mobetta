@@ -22,8 +22,8 @@ class Migration(migrations.Migration):
                 ('fieldname', models.CharField(max_length=127)),
                 ('old_value', models.CharField(max_length=255, null=True, blank=True)),
                 ('new_value', models.CharField(max_length=255, null=True, blank=True)),
-                ('file_edited', models.ForeignKey(related_name='edit_logs', to='mobetta.TranslationFile')),
-                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('file_edited', models.ForeignKey(related_name='edit_logs', to='mobetta.TranslationFile', on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['created'],

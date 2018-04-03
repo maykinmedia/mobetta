@@ -14,16 +14,16 @@ env/
 cover
 tests/static
 *.db
+tests/locale/nl/LC_MESSAGES/django\.mo
+\.cache/v/cache/lastfailed
+coverage\.xml
+junit\.xml
+.pytest_cache
 
 # docs
 docs/_build
 docs/_static
 docs/_templates
 
-tests/locale/nl/LC_MESSAGES/django\.mo
-
-\.cache/v/cache/lastfailed
-
-coverage\.xml
-
-junit\.xml
+# IDE/editors
+.vscode
