@@ -53,7 +53,16 @@ class TranslationFile(models.Model):
         - fuzzy messages
         - obsolete messages
         """
-        pofile = self.get_polib_object()
+        try:
+            pofile = self.get_polib_object()
+        except:
+            return {
+                'percent_translated': 0,
+                'total_messages': 0,
+                'translated_messages': 0,
+                'fuzzy_messages': 0,
+                'obsolete_messages': 0
+            }
 
         translated_entries = len(pofile.translated_entries())
         untranslated_entries = len(pofile.untranslated_entries())
