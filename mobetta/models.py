@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
+import logging
 import os.path
 
 from django.conf import settings
@@ -10,6 +11,8 @@ from django.utils.encoding import python_2_unicode_compatible
 import polib
 
 from .util import app_name_from_filepath
+
+logger = logging.getLogger(__name__)
 
 # UserModel represents the model used by the project
 UserModel = getattr(settings, 'AUTH_USER_MODEL', 'auth.User')
@@ -53,7 +56,17 @@ class TranslationFile(models.Model):
         - fuzzy messages
         - obsolete messages
         """
-        pofile = self.get_polib_object()
+        try:
+            pofile = self.get_polib_object()
+        except Exception as exc:
+            logger.warning("Could not get polib object", exc_info=True)
+            return {
+                'percent_translated': 0,
+                'total_messages': 0,
+                'translated_messages': 0,
+                'fuzzy_messages': 0,
+                'obsolete_messages': 0
+            }
 
         translated_entries = len(pofile.translated_entries())
         untranslated_entries = len(pofile.untranslated_entries())

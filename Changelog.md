@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+Added a bit more resiliency to missing PO-files (@alextreme)
+
 ## 0.3.0
 
 * Dropped support for Django < 1.11
