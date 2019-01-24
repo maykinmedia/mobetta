@@ -18,9 +18,6 @@ Mobetta
 .. image:: https://img.shields.io/pypi/v/mobetta.svg
     :target: https://pypi.python.org/pypi/mobetta
 
-.. image:: https://lintly.com/gh/maykinmedia/mobetta/badge.svg
-    :target: https://lintly.com/gh/maykinmedia/mobetta/
-
 Mobetta is a reusable app to manage translation files in Django projects.
 
 It's inspired on `django-rosetta`_, but takes a more modern approach to problem
