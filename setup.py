@@ -24,6 +24,7 @@ setup(
         'Django>=1.11',
         'polib',
         'djangorestframework>=3.7.0',
+        'six'
     ],
     include_package_data=True,
     packages=find_packages(exclude=["tests"]),
