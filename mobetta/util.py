@@ -30,7 +30,8 @@ import unicodedata
 import django
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six, timezone
+import six
+from django.utils import timezone
 
 from . import __version__
 from .conf.settings import MOBETTA_PO_FILENAMES
